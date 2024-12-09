@@ -1,0 +1,897 @@
+Array
+(
+    [data] => Array
+        (
+            [user] => Array
+                (
+                    [id] => 15
+                    [name] => Natalia Giselle
+                    [email] => nataliagiselle.c@gmail.com
+                    [password] => $2y$10$pjjvB440OT9ebhQWgWnl/O3XUo3rvW41tO7Hlo9yu8KAeWBNlEkoa
+                    [cuit] => 22222222225
+                    [tel] => +549115572264
+                    [addresses] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [id_address] => 6
+                                    [street] => Saavedra 4179
+                                    [street2] => 
+                                    [city] => Ciudadela
+                                    [province] => Buenos Aires
+                                    [cp] => 1704
+                                    [name_address] => Natalia GG
+                                    [last_name] => Curia
+                                    [company_name] => natalia.curia(dev);
+                                    [tel_address] => 01155722648
+                                    [default_address] => 1
+                                )
+
+                            [1] => Array
+                                (
+                                    [id_address] => 9
+                                    [street] => republica 7361
+                                    [street2] => 
+                                    [city] => villa ballester
+                                    [province] => Buenos Aires
+                                    [cp] => 1655
+                                    [name_address] => sebastian
+                                    [last_name] => gomez
+                                    [company_name] => 
+                                    [tel_address] => 01155722648
+                                    [default_address] => 0
+                                )
+
+                        )
+
+                )
+
+            [products] => Array
+                (
+                    [0] => Array
+                        (
+                            [product] => Array
+                                (
+                                    [id] => 5500
+                                    [name] => tu mama
+                                    [category] => Apliques de pared
+                                    [price_min] => 0
+                                    [price_max] => 25610
+                                    [description] => en bici
+                                    [img_url] => /uploads/img-products/aplique-de-pared.jpg
+                                )
+
+                            [quantity] => 5
+                        )
+
+                    [1] => Array
+                        (
+                            [product] => Array
+                                (
+                                    [id] => 5700
+                                    [name] => 3
+                                    [category] => Lamparas de mesa
+                                    [price_min] => 0
+                                    [price_max] => 59610
+                                    [description] => Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                                    [img_url] => /uploads/img-products/lampara-de-mesa.png
+                                )
+
+                            [quantity] => 1
+                        )
+
+                )
+
+            [total_price] => 187660
+            [address] => Array
+                (
+                    [id_address] => 6
+                    [street] => Saavedra 4179
+                    [street2] => 
+                    [city] => Ciudadela
+                    [province] => Buenos Aires
+                    [cp] => 1704
+                    [name_address] => Natalia GG
+                    [last_name] => Curia
+                    [company_name] => natalia.curia(dev);
+                    [tel_address] => 01155722648
+                    [default_address] => 1
+                )
+
+            [shipping] => Array
+                (
+                    [id] => pickup
+                    [description] => Retirar en tienda
+                    [price] => GRATIS
+                )
+
+            [date] => 2024-11-27T16:20:45.127Z
+            [state] => En proceso
+        )
+
+)
+Datos faltantes: Array
+(
+    [data] => Array
+        (
+            [user] => Array
+                (
+                    [id] => 15
+                    [name] => Natalia Giselle
+                    [email] => nataliagiselle.c@gmail.com
+                    [password] => $2y$10$pjjvB440OT9ebhQWgWnl/O3XUo3rvW41tO7Hlo9yu8KAeWBNlEkoa
+                    [cuit] => 22222222225
+                    [tel] => +549115572264
+                    [addresses] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [id_address] => 6
+                                    [street] => Saavedra 4179
+                                    [street2] => 
+                                    [city] => Ciudadela
+                                    [province] => Buenos Aires
+                                    [cp] => 1704
+                                    [name_address] => Natalia GG
+                                    [last_name] => Curia
+                                    [company_name] => natalia.curia(dev);
+                                    [tel_address] => 01155722648
+                                    [default_address] => 1
+                                )
+
+                            [1] => Array
+                                (
+                                    [id_address] => 9
+                                    [street] => republica 7361
+                                    [street2] => 
+                                    [city] => villa ballester
+                                    [province] => Buenos Aires
+                                    [cp] => 1655
+                                    [name_address] => sebastian
+                                    [last_name] => gomez
+                                    [company_name] => 
+                                    [tel_address] => 01155722648
+                                    [default_address] => 0
+                                )
+
+                        )
+
+                )
+
+            [products] => Array
+                (
+                    [0] => Array
+                        (
+                            [product] => Array
+                                (
+                                    [id] => 5500
+                                    [name] => tu mama
+                                    [category] => Apliques de pared
+                                    [price_min] => 0
+                                    [price_max] => 25610
+                                    [description] => en bici
+                                    [img_url] => /uploads/img-products/aplique-de-pared.jpg
+                                )
+
+                            [quantity] => 5
+                        )
+
+                    [1] => Array
+                        (
+                            [product] => Array
+                                (
+                                    [id] => 5700
+                                    [name] => 3
+                                    [category] => Lamparas de mesa
+                                    [price_min] => 0
+                                    [price_max] => 59610
+                                    [description] => Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                                    [img_url] => /uploads/img-products/lampara-de-mesa.png
+                                )
+
+                            [quantity] => 1
+                        )
+
+                )
+
+            [total_price] => 187660
+            [address] => Array
+                (
+                    [id_address] => 6
+                    [street] => Saavedra 4179
+                    [street2] => 
+                    [city] => Ciudadela
+                    [province] => Buenos Aires
+                    [cp] => 1704
+                    [name_address] => Natalia GG
+                    [last_name] => Curia
+                    [company_name] => natalia.curia(dev);
+                    [tel_address] => 01155722648
+                    [default_address] => 1
+                )
+
+            [shipping] => Array
+                (
+                    [id] => pickup
+                    [description] => Retirar en tienda
+                    [price] => GRATIS
+                )
+
+            [date] => 2024-11-27T16:20:45.127Z
+            [state] => En proceso
+        )
+
+)
+Datos faltantes: Array
+(
+    [data] => Array
+        (
+            [user] => Array
+                (
+                    [id] => 15
+                    [name] => Natalia Giselle
+                    [email] => nataliagiselle.c@gmail.com
+                    [password] => $2y$10$pjjvB440OT9ebhQWgWnl/O3XUo3rvW41tO7Hlo9yu8KAeWBNlEkoa
+                    [cuit] => 22222222225
+                    [tel] => +549115572264
+                    [addresses] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [id_address] => 6
+                                    [street] => Saavedra 4179
+                                    [street2] => 
+                                    [city] => Ciudadela
+                                    [province] => Buenos Aires
+                                    [cp] => 1704
+                                    [name_address] => Natalia GG
+                                    [last_name] => Curia
+                                    [company_name] => natalia.curia(dev);
+                                    [tel_address] => 01155722648
+                                    [default_address] => 1
+                                )
+
+                            [1] => Array
+                                (
+                                    [id_address] => 9
+                                    [street] => republica 7361
+                                    [street2] => 
+                                    [city] => villa ballester
+                                    [province] => Buenos Aires
+                                    [cp] => 1655
+                                    [name_address] => sebastian
+                                    [last_name] => gomez
+                                    [company_name] => 
+                                    [tel_address] => 01155722648
+                                    [default_address] => 0
+                                )
+
+                        )
+
+                )
+
+            [products] => Array
+                (
+                    [0] => Array
+                        (
+                            [product] => Array
+                                (
+                                    [id] => 5500
+                                    [name] => tu mama
+                                    [category] => Apliques de pared
+                                    [price_min] => 0
+                                    [price_max] => 25610
+                                    [description] => en bici
+                                    [img_url] => /uploads/img-products/aplique-de-pared.jpg
+                                )
+
+                            [quantity] => 5
+                        )
+
+                    [1] => Array
+                        (
+                            [product] => Array
+                                (
+                                    [id] => 5700
+                                    [name] => 3
+                                    [category] => Lamparas de mesa
+                                    [price_min] => 0
+                                    [price_max] => 59610
+                                    [description] => Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                                    [img_url] => /uploads/img-products/lampara-de-mesa.png
+                                )
+
+                            [quantity] => 1
+                        )
+
+                )
+
+            [total_price] => 187660
+            [address] => Array
+                (
+                    [id_address] => 6
+                    [street] => Saavedra 4179
+                    [street2] => 
+                    [city] => Ciudadela
+                    [province] => Buenos Aires
+                    [cp] => 1704
+                    [name_address] => Natalia GG
+                    [last_name] => Curia
+                    [company_name] => natalia.curia(dev);
+                    [tel_address] => 01155722648
+                    [default_address] => 1
+                )
+
+            [shipping] => Array
+                (
+                    [id] => pickup
+                    [description] => Retirar en tienda
+                    [price] => GRATIS
+                )
+
+            [date] => 2024-11-27T16:21:09.329Z
+            [state] => En proceso
+        )
+
+)
+Datos faltantes: Array
+(
+    [data] => Array
+        (
+            [user] => Array
+                (
+                    [id] => 15
+                    [name] => Natalia Giselle
+                    [email] => nataliagiselle.c@gmail.com
+                    [password] => $2y$10$pjjvB440OT9ebhQWgWnl/O3XUo3rvW41tO7Hlo9yu8KAeWBNlEkoa
+                    [cuit] => 22222222225
+                    [tel] => +549115572264
+                    [addresses] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [id_address] => 6
+                                    [street] => Saavedra 4179
+                                    [street2] => 
+                                    [city] => Ciudadela
+                                    [province] => Buenos Aires
+                                    [cp] => 1704
+                                    [name_address] => Natalia GG
+                                    [last_name] => Curia
+                                    [company_name] => natalia.curia(dev);
+                                    [tel_address] => 01155722648
+                                    [default_address] => 1
+                                )
+
+                            [1] => Array
+                                (
+                                    [id_address] => 9
+                                    [street] => republica 7361
+                                    [street2] => 
+                                    [city] => villa ballester
+                                    [province] => Buenos Aires
+                                    [cp] => 1655
+                                    [name_address] => sebastian
+                                    [last_name] => gomez
+                                    [company_name] => 
+                                    [tel_address] => 01155722648
+                                    [default_address] => 0
+                                )
+
+                        )
+
+                )
+
+            [products] => Array
+                (
+                    [0] => Array
+                        (
+                            [product] => Array
+                                (
+                                    [id] => 5500
+                                    [name] => tu mama
+                                    [category] => Apliques de pared
+                                    [price_min] => 0
+                                    [price_max] => 25610
+                                    [description] => en bici
+                                    [img_url] => /uploads/img-products/aplique-de-pared.jpg
+                                )
+
+                            [quantity] => 5
+                        )
+
+                    [1] => Array
+                        (
+                            [product] => Array
+                                (
+                                    [id] => 5700
+                                    [name] => 3
+                                    [category] => Lamparas de mesa
+                                    [price_min] => 0
+                                    [price_max] => 59610
+                                    [description] => Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                                    [img_url] => /uploads/img-products/lampara-de-mesa.png
+                                )
+
+                            [quantity] => 1
+                        )
+
+                )
+
+            [total_price] => 187660
+            [address] => Array
+                (
+                    [id_address] => 6
+                    [street] => Saavedra 4179
+                    [street2] => 
+                    [city] => Ciudadela
+                    [province] => Buenos Aires
+                    [cp] => 1704
+                    [name_address] => Natalia GG
+                    [last_name] => Curia
+                    [company_name] => natalia.curia(dev);
+                    [tel_address] => 01155722648
+                    [default_address] => 1
+                )
+
+            [shipping] => Array
+                (
+                    [id] => pickup
+                    [description] => Retirar en tienda
+                    [price] => GRATIS
+                )
+
+            [date] => 2024-11-27T16:31:08.478Z
+            [state] => En proceso
+        )
+
+)
+Datos faltantes: Datos faltantes: Array
+(
+    [data] => Array
+        (
+            [user] => Array
+                (
+                    [id] => 15
+                    [name] => Natalia Giselle
+                    [email] => nataliagiselle.c@gmail.com
+                    [password] => $2y$10$pjjvB440OT9ebhQWgWnl/O3XUo3rvW41tO7Hlo9yu8KAeWBNlEkoa
+                    [cuit] => 22222222225
+                    [tel] => +549115572264
+                    [addresses] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [id_address] => 6
+                                    [street] => Saavedra 4179
+                                    [street2] => 
+                                    [city] => Ciudadela
+                                    [province] => Buenos Aires
+                                    [cp] => 1704
+                                    [name_address] => Natalia GG
+                                    [last_name] => Curia
+                                    [company_name] => natalia.curia(dev);
+                                    [tel_address] => 01155722648
+                                    [default_address] => 1
+                                )
+
+                            [1] => Array
+                                (
+                                    [id_address] => 9
+                                    [street] => republica 7361
+                                    [street2] => 
+                                    [city] => villa ballester
+                                    [province] => Buenos Aires
+                                    [cp] => 1655
+                                    [name_address] => sebastian
+                                    [last_name] => gomez
+                                    [company_name] => 
+                                    [tel_address] => 01155722648
+                                    [default_address] => 0
+                                )
+
+                        )
+
+                )
+
+            [products] => Array
+                (
+                    [0] => Array
+                        (
+                            [product] => Array
+                                (
+                                    [id] => 5500
+                                    [name] => tu mama
+                                    [category] => Apliques de pared
+                                    [price_min] => 0
+                                    [price_max] => 25610
+                                    [description] => en bici
+                                    [img_url] => /uploads/img-products/aplique-de-pared.jpg
+                                )
+
+                            [quantity] => 5
+                        )
+
+                    [1] => Array
+                        (
+                            [product] => Array
+                                (
+                                    [id] => 5700
+                                    [name] => 3
+                                    [category] => Lamparas de mesa
+                                    [price_min] => 0
+                                    [price_max] => 59610
+                                    [description] => Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                                    [img_url] => /uploads/img-products/lampara-de-mesa.png
+                                )
+
+                            [quantity] => 1
+                        )
+
+                )
+
+            [total_price] => 187660
+            [address] => Array
+                (
+                    [id_address] => 6
+                    [street] => Saavedra 4179
+                    [street2] => 
+                    [city] => Ciudadela
+                    [province] => Buenos Aires
+                    [cp] => 1704
+                    [name_address] => Natalia GG
+                    [last_name] => Curia
+                    [company_name] => natalia.curia(dev);
+                    [tel_address] => 01155722648
+                    [default_address] => 1
+                )
+
+            [shipping] => Array
+                (
+                    [id] => pickup
+                    [description] => Retirar en tienda
+                    [price] => GRATIS
+                )
+
+            [date] => 2024-11-27T16:40:10.014Z
+            [state] => En proceso
+        )
+
+)
+Datos faltantes: Datos recibidos: Array
+(
+    [data] => Array
+        (
+            [user] => Array
+                (
+                    [id] => 15
+                    [name] => Natalia Giselle
+                    [email] => nataliagiselle.c@gmail.com
+                    [password] => $2y$10$pjjvB440OT9ebhQWgWnl/O3XUo3rvW41tO7Hlo9yu8KAeWBNlEkoa
+                    [cuit] => 22222222225
+                    [tel] => +549115572264
+                    [addresses] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [id_address] => 6
+                                    [street] => Saavedra 4179
+                                    [street2] => 
+                                    [city] => Ciudadela
+                                    [province] => Buenos Aires
+                                    [cp] => 1704
+                                    [name_address] => Natalia GG
+                                    [last_name] => Curia
+                                    [company_name] => natalia.curia(dev);
+                                    [tel_address] => 01155722648
+                                    [default_address] => 1
+                                )
+
+                            [1] => Array
+                                (
+                                    [id_address] => 9
+                                    [street] => republica 7361
+                                    [street2] => 
+                                    [city] => villa ballester
+                                    [province] => Buenos Aires
+                                    [cp] => 1655
+                                    [name_address] => sebastian
+                                    [last_name] => gomez
+                                    [company_name] => 
+                                    [tel_address] => 01155722648
+                                    [default_address] => 0
+                                )
+
+                        )
+
+                )
+
+            [products] => Array
+                (
+                    [0] => Array
+                        (
+                            [product] => Array
+                                (
+                                    [id] => 5500
+                                    [name] => tu mama
+                                    [category] => Apliques de pared
+                                    [price_min] => 0
+                                    [price_max] => 25610
+                                    [description] => en bici
+                                    [img_url] => /uploads/img-products/aplique-de-pared.jpg
+                                )
+
+                            [quantity] => 5
+                        )
+
+                    [1] => Array
+                        (
+                            [product] => Array
+                                (
+                                    [id] => 5700
+                                    [name] => 3
+                                    [category] => Lamparas de mesa
+                                    [price_min] => 0
+                                    [price_max] => 59610
+                                    [description] => Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                                    [img_url] => /uploads/img-products/lampara-de-mesa.png
+                                )
+
+                            [quantity] => 1
+                        )
+
+                )
+
+            [total_price] => 187660
+            [address] => Array
+                (
+                    [id_address] => 6
+                    [street] => Saavedra 4179
+                    [street2] => 
+                    [city] => Ciudadela
+                    [province] => Buenos Aires
+                    [cp] => 1704
+                    [name_address] => Natalia GG
+                    [last_name] => Curia
+                    [company_name] => natalia.curia(dev);
+                    [tel_address] => 01155722648
+                    [default_address] => 1
+                )
+
+            [shipping] => Array
+                (
+                    [id] => pickup
+                    [description] => Retirar en tienda
+                    [price] => GRATIS
+                )
+
+            [date] => 2024-11-27T17:34:03.990Z
+            [state] => En proceso
+        )
+
+)
+Datos faltantes: Array
+(
+    [data] => Array
+        (
+            [user] => Array
+                (
+                    [id] => 15
+                    [name] => Natalia Giselle
+                    [email] => nataliagiselle.c@gmail.com
+                    [password] => $2y$10$pjjvB440OT9ebhQWgWnl/O3XUo3rvW41tO7Hlo9yu8KAeWBNlEkoa
+                    [cuit] => 22222222225
+                    [tel] => +549115572264
+                    [addresses] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [id_address] => 6
+                                    [street] => Saavedra 4179
+                                    [street2] => 
+                                    [city] => Ciudadela
+                                    [province] => Buenos Aires
+                                    [cp] => 1704
+                                    [name_address] => Natalia GG
+                                    [last_name] => Curia
+                                    [company_name] => natalia.curia(dev);
+                                    [tel_address] => 01155722648
+                                    [default_address] => 1
+                                )
+
+                            [1] => Array
+                                (
+                                    [id_address] => 9
+                                    [street] => republica 7361
+                                    [street2] => 
+                                    [city] => villa ballester
+                                    [province] => Buenos Aires
+                                    [cp] => 1655
+                                    [name_address] => sebastian
+                                    [last_name] => gomez
+                                    [company_name] => 
+                                    [tel_address] => 01155722648
+                                    [default_address] => 0
+                                )
+
+                        )
+
+                )
+
+            [products] => Array
+                (
+                    [0] => Array
+                        (
+                            [product] => Array
+                                (
+                                    [id] => 5500
+                                    [name] => tu mama
+                                    [category] => Apliques de pared
+                                    [price_min] => 0
+                                    [price_max] => 25610
+                                    [description] => en bici
+                                    [img_url] => /uploads/img-products/aplique-de-pared.jpg
+                                )
+
+                            [quantity] => 5
+                        )
+
+                    [1] => Array
+                        (
+                            [product] => Array
+                                (
+                                    [id] => 5700
+                                    [name] => 3
+                                    [category] => Lamparas de mesa
+                                    [price_min] => 0
+                                    [price_max] => 59610
+                                    [description] => Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                                    [img_url] => /uploads/img-products/lampara-de-mesa.png
+                                )
+
+                            [quantity] => 1
+                        )
+
+                )
+
+            [total_price] => 187660
+            [address] => Array
+                (
+                    [id_address] => 6
+                    [street] => Saavedra 4179
+                    [street2] => 
+                    [city] => Ciudadela
+                    [province] => Buenos Aires
+                    [cp] => 1704
+                    [name_address] => Natalia GG
+                    [last_name] => Curia
+                    [company_name] => natalia.curia(dev);
+                    [tel_address] => 01155722648
+                    [default_address] => 1
+                )
+
+            [shipping] => Array
+                (
+                    [id] => pickup
+                    [description] => Retirar en tienda
+                    [price] => GRATIS
+                )
+
+            [date] => 2024-11-27T17:34:03.990Z
+            [state] => En proceso
+        )
+
+)
+Datos recibidos: Datos faltantes: Datos recibidos: Datos recibidos: Array
+(
+    [data] => Array
+        (
+            [user] => Array
+                (
+                    [id] => 15
+                    [name] => Natalia Giselle
+                    [email] => nataliagiselle.c@gmail.com
+                    [password] => $2y$10$pjjvB440OT9ebhQWgWnl/O3XUo3rvW41tO7Hlo9yu8KAeWBNlEkoa
+                    [cuit] => 22222222225
+                    [tel] => +549115572264
+                    [addresses] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [id_address] => 6
+                                    [street] => Saavedra 4179
+                                    [street2] => 
+                                    [city] => Ciudadela
+                                    [province] => Buenos Aires
+                                    [cp] => 1704
+                                    [name_address] => Natalia GG
+                                    [last_name] => Curia
+                                    [company_name] => natalia.curia(dev);
+                                    [tel_address] => 01155722648
+                                    [default_address] => 1
+                                )
+
+                            [1] => Array
+                                (
+                                    [id_address] => 9
+                                    [street] => republica 7361
+                                    [street2] => 
+                                    [city] => villa ballester
+                                    [province] => Buenos Aires
+                                    [cp] => 1655
+                                    [name_address] => sebastian
+                                    [last_name] => gomez
+                                    [company_name] => 
+                                    [tel_address] => 01155722648
+                                    [default_address] => 0
+                                )
+
+                        )
+
+                )
+
+            [products] => Array
+                (
+                    [0] => Array
+                        (
+                            [product] => Array
+                                (
+                                    [id] => 5500
+                                    [name] => tu mama
+                                    [category] => Apliques de pared
+                                    [price_min] => 0
+                                    [price_max] => 25610
+                                    [description] => en bici
+                                    [img_url] => /uploads/img-products/aplique-de-pared.jpg
+                                )
+
+                            [quantity] => 5
+                        )
+
+                    [1] => Array
+                        (
+                            [product] => Array
+                                (
+                                    [id] => 5700
+                                    [name] => 3
+                                    [category] => Lamparas de mesa
+                                    [price_min] => 0
+                                    [price_max] => 59610
+                                    [description] => Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                                    [img_url] => /uploads/img-products/lampara-de-mesa.png
+                                )
+
+                            [quantity] => 1
+                        )
+
+                )
+
+            [total_price] => 187660
+            [address] => Array
+                (
+                    [id_address] => 6
+                    [street] => Saavedra 4179
+                    [street2] => 
+                    [city] => Ciudadela
+                    [province] => Buenos Aires
+                    [cp] => 1704
+                    [name_address] => Natalia GG
+                    [last_name] => Curia
+                    [company_name] => natalia.curia(dev);
+                    [tel_address] => 01155722648
+                    [default_address] => 1
+                )
+
+            [shipping] => Array
+                (
+                    [id] => pickup
+                    [description] => Retirar en tienda
+                    [price] => GRATIS
+                )
+
+            [date] => 2024-11-27T17:34:45.872Z
+            [state] => En proceso
+        )
+
+)
+Datos recibidos: Error en la base de datos: SQLSTATE[HY093]: Invalid parameter numberError en la base de datos: SQLSTATE[HY093]: Invalid parameter number
