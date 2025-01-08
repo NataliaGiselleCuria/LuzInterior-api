@@ -292,38 +292,46 @@ if (isset($_GET['action'])) {
             }
             break;
 
-        case 'register-user': // Acciones de usuario
-            $data = json_decode(file_get_contents("php://input"), true);
-
-            if (isset($data['data']['name'], $data['data']['cuit'], $data['data']['email'], $data['data']['tel'], $data['data']['password'])) {
-                $name = $data['data']['name'];
-                $cuit = $data['data']['cuit'];
-                $email = $data['data']['email'];
-                $tel = $data['data']['tel'];
-                $password = password_hash($data['data']['password'], PASSWORD_BCRYPT);
-                $approved = false;
-                $register_date = $data['date'];
-
-                try {
-                    $sql = $con->prepare("INSERT INTO users (name, cuit, email, password, approved, register_date) VALUES (?,?, ?, ?, ?, ?)");
-                    $sql->execute([$name, $cuit, $email, $password, $approved, $register_date]);
-
-                    if ($sql->rowCount() > 0) {
-                        enviarRespuesta(['success' => true, 'message' => 'Usuario registrado exitosamente']);
-                    } else {
-                        enviarRespuesta(['success' => false, 'message' => 'No se pudo registrar el usuario']);
+            case 'register-user':
+                $data = json_decode(file_get_contents("php://input"), true);
+            
+                if (isset($data['data']['name'], $data['data']['cuit'], $data['data']['email'], $data['data']['tel'], $data['data']['password'])) {
+                    $name = $data['data']['name'];
+                    $cuit = $data['data']['cuit'];
+                    $email = $data['data']['email'];
+                    $tel = $data['data']['tel'];
+                    $password = $data['data']['password'];
+            
+                    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                        enviarRespuesta(['success' => false, 'message' => 'El email no tiene un formato válido']);
+                        break;
                     }
-                } catch (PDOException $e) {
-                    if ($e->getCode() == 23000) {
-                        enviarRespuesta(['success' => false, 'message' => 'Este usuario ya está registrado']);
-                    } else {
-                        enviarRespuesta(['success' => false, 'message' => 'Error en la base de datos: ' . $e->getMessage()]);
+            
+                    $passwordHashed = password_hash($password, PASSWORD_BCRYPT);
+                    $approved = false;
+                    $register_date = date('Y-m-d H:i:s');
+            
+                    try {
+
+                        $sql = $con->prepare("INSERT INTO users (name, cuit, email, password, approved, register_date) VALUES (?, ?, ?, ?, ?, ?)");
+                        $sql->execute([$name, $cuit, $email, $passwordHashed, $approved, $register_date]);
+            
+                        if ($sql->rowCount() > 0) {
+                            enviarRespuesta(['success' => true, 'message' => 'Usuario registrado exitosamente']);
+                        } else {
+                            enviarRespuesta(['success' => false, 'message' => 'No se pudo registrar el usuario']);
+                        }
+                    } catch (PDOException $e) {
+                        if ($e->getCode() == 23000) {
+                            enviarRespuesta(['success' => false, 'message' => 'Este usuario ya está registrado']);
+                        } else {
+                            enviarRespuesta(['success' => false, 'message' => 'Error en la base de datos: ' . $e->getMessage()]);
+                        }
                     }
+                } else {
+                    enviarRespuesta(['success' => false, 'message' => 'Datos incompletos']);
                 }
-            } else {
-                enviarRespuesta(['success' => false, 'message' => 'Datos incompletos']);
-            }
-            break;
+                break;
 
         case 'login':
             $data = json_decode(file_get_contents("php://input"), true);
