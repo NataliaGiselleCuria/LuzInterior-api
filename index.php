@@ -8,14 +8,12 @@ error_reporting(E_ALL);
 require_once 'database.php';
 require_once 'config.php';
 require_once 'vendor/autoload.php';
-
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
+require_once 'functions.php';
 
 $db = new DataBase();
 $con = $db->conectar();
 
-$dominiosPermitidos = ["http://localhost:5173", "https://localhost:5173"];
+$dominiosPermitidos = ["http://localhost:5173", "https://luz-interior.free.nf/"];
 
 if (isset($_SERVER['HTTP_ORIGIN']) && in_array($_SERVER['HTTP_ORIGIN'], $dominiosPermitidos)) {
     header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
@@ -33,140 +31,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     die();
 }
 
-require 'vendor/autoload.php';
-
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
-
-function generarToken($userId)
-{
-    $issuedAt = time();
-    $expirationTime = $issuedAt + 3600;
-
-    $payload = [
-        'iat' => $issuedAt,         // Fecha de emisión
-        'exp' => $expirationTime,   // Fecha de expiración
-        'sub' => $userId            // ID del usuario
-    ];
-
-    return JWT::encode($payload, JWT_SECRET, JWT_ALGORITHM);
-}
-
-function enviarCorreo($destinatario, $asunto, $mensajeHtml)
-{
-    $mail = new PHPMailer(true);
-
-    try {
-        $mail->isSMTP();
-        $mail->Host = 'smtp.gmail.com'; // Cambiar por tu servidor SMTP
-        $mail->SMTPAuth = true;
-        $mail->Username = 'nataliagiselle.c@gmail.com'; // Tu email
-        $mail->Password = 'zayd qnsz faib ryfy'; // Tu contraseña (usa claves de app si es Gmail)
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port = 587;
-
-        // Configuración del correo
-        $mail->setFrom('nataliagiselle.c@gmail.com', 'LUZ INTERIOR');
-        $mail->addAddress($destinatario);
-        $mail->isHTML(true);
-        $mail->Subject = $asunto;
-        $mail->Body = $mensajeHtml;
-
-        $mail->send();
-        return true;
-    } catch (Exception $e) {
-
-        error_log("Error al enviar correo: {$mail->ErrorInfo}");
-        return false;
-    }
-}
-
-function enviarRespuesta($data)
-{
-    global $dominiosPermitidos;
-
-    if (isset($_SERVER['HTTP_ORIGIN']) && in_array($_SERVER['HTTP_ORIGIN'], $dominiosPermitidos)) {
-        header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
-        header("Access-Control-Allow-Credentials: true");
-    }
-
-    header('Content-Type: application/json');
-    echo json_encode($data);
-
-    exit;
-}
-
-function verificarToken($token)
-{
-    try {
-        return JWT::decode($token, new Key(JWT_SECRET, JWT_ALGORITHM));
-    } catch (Exception $e) {
-        return null; // Token inválido o expirado
-    }
-}
-
-function registerProduct($con, $data)
-{
-    try {
-        $sql = $con->prepare("INSERT INTO products (id, name, category, price, description) VALUES (?, ?, ?, ?, ?)");
-        $sql->execute([$data['id'], $data['name'], $data['category'], $data['price'], $data['description']]);
-
-        if ($sql->rowCount() > 0) {
-            return ['success' => true];
-        } else {
-            return ['success' => false, 'message' => 'No se pudo registrar el producto'];
-        }
-    } catch (PDOException $e) {
-        if ($e->getCode() == 23000) {
-            return ['success' => false, 'message' => 'Este producto ya está registrado'];
-        } else {
-            return ['success' => false, 'message' => 'Error en la base de datos: ' . $e->getMessage()];
-        }
-    }
-}
-
-function uploadImagesProducts($con, $file, $priority, $productId)
-{
-    $allowedTypes = ['image/jpeg', 'image/png'];
-    if (!in_array($file['type'], $allowedTypes)) {
-        return ['success' => false, 'message' => 'Tipo de archivo no permitido'];
-    }
-
-    $targetDir = 'uploads/img-products/';
-    $targetFile = $targetDir . basename($file['name']);
-
-    if (move_uploaded_file($file['tmp_name'], $targetFile)) {
-        try {
-            $sql = $con->prepare("INSERT INTO products_images (product_id, img_url, priority) VALUES (?, ?, ?)");
-            $sql->execute([$productId, $targetFile, $priority]);
-
-            if ($sql->rowCount() > 0) {
-                return ['success' => true];
-            } else {
-                return ['success' => false, 'message' => 'No se pudo guardar la imagen en la base de datos'];
+if (!function_exists('getallheaders')) {
+    function getallheaders()
+    {
+        $headers = [];
+        foreach ($_SERVER as $name => $value) {
+            if (substr($name, 0, 5) == 'HTTP_') {
+                $headerName = str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))));
+                $headers[$headerName] = $value;
             }
-        } catch (PDOException $e) {
-            return ['success' => false, 'message' => 'Error en la base de datos: ' . $e->getMessage()];
         }
-    } else {
-        return ['success' => false, 'message' => 'Error al subir la imagen'];
+        return $headers;
     }
 }
 
 if (isset($_GET['action'])) {
     $action = $_GET['action'];
     switch ($action) {
-        case 'verify-token':
-            $authHeader = getallheaders();
-
-            list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
-
-            $decoded = verificarToken($jwt);
-
-            if ($decoded) {
-                enviarRespuesta(['success' => true, 'message' => 'Token válido', 'data' => $decoded]);
-            } else {
-                enviarRespuesta(['success' => false, 'message' => 'Token inválido o expirado']);
+        case 'verify-token': //data
+            try {
+                $authHeader = getallheaders();
+                list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
+        
+                if (empty($jwt)) {
+                    throw new Exception("Token ausente");
+                }
+        
+                $decoded = verificarToken($jwt);
+        
+                if ($decoded) {
+                    enviarRespuesta(['success' => true, 'message' => 'Token válido', 'data' => $decoded]);
+                } else {
+                    throw new Exception("Token inválido o expirado");
+                }
+            } catch (Exception $e) {
+                enviarRespuesta(['success' => false, 'message' => $e->getMessage()]);
             }
             break;
 
@@ -231,7 +130,6 @@ if (isset($_GET['action'])) {
             $sql->execute();
             $resultado = $sql->fetchAll(PDO::FETCH_ASSOC);
 
-            // Procesamos los datos para que cada usuario tenga un array de direcciones
             $usuarios = [];
             foreach ($resultado as $row) {
 
@@ -240,7 +138,11 @@ if (isset($_GET['action'])) {
                         'id' => $row['id'],
                         'name' => $row['name'],
                         'email' => $row['email'],
+                        'cuit' => $row['cuit'],
+                        'approved' => $row['approved'],
                         'role' => $row['role'],
+                        'register_date' => $row['register_date'],
+                        'new' => $row['new'],
                         'addresses' => []
                     ];
                 }
@@ -264,15 +166,57 @@ if (isset($_GET['action'])) {
 
             enviarRespuesta(array_values($usuarios));
             break;
+        case 'orders':
+            $sql = $con->prepare("
+                SELECT orders.*, order_products.*
+                FROM orders
+                LEFT JOIN order_products ON orders.id_order = order_products.order_id
+            ");
+            $sql->execute();
+            $resultado = $sql->fetchAll(PDO::FETCH_ASSOC);
 
-        case 'settings':
-            $sql = $con->prepare("SELECT * FROM settings");
+            $ordenes = [];
+            foreach ($resultado as $row) {
+
+                if (!isset($ordenes[$row['id_order']])) {
+                    $ordenes[$row['id_order']] = [
+                        'id_order' => $row['id_order'],
+                        'id_user' => $row['id_user'],
+                        'date' => $row['date'],
+                        'total_price' => $row['total_price'],
+                        'shipping_address' => $row['shipping_address'],
+                        'shipping_type' => $row['shipping_type'],
+                        'state' => $row['state'],
+                        'new' => $row['new'],
+                        'products' => []
+                    ];
+                }
+
+                if ($row['order_id']) {
+                    $ordenes[$row['order_id']]['products'][] = [
+                        'id' => $row['id'],
+                        'product_id' => $row['product_id'],
+                        'quantity' => $row['quantity']
+                    ];
+                }
+            }
+
+            enviarRespuesta(array_values($ordenes));
+            break;
+        case 'company_info':
+            $sql = $con->prepare("SELECT * FROM company_info");
             $sql->execute();
             $resultado = $sql->fetchAll(PDO::FETCH_ASSOC);
             enviarRespuesta($resultado);
             echo $resultado;
             break;
-
+        case 'social':
+            $sql = $con->prepare("SELECT * FROM social_networks");
+            $sql->execute();
+            $resultado = $sql->fetchAll(PDO::FETCH_ASSOC);
+            enviarRespuesta($resultado);
+            echo $resultado;
+            break;
         case 'shipping':
             $sql = $con->prepare("SELECT * FROM shipping");
             $sql->execute();
@@ -280,7 +224,13 @@ if (isset($_GET['action'])) {
             enviarRespuesta($resultado);
             echo $resultado;
             break;
-
+        case 'gallery':
+            $sql = $con->prepare("SELECT * FROM gallery_images");
+            $sql->execute();
+            $resultado = $sql->fetchAll(PDO::FETCH_ASSOC);
+            enviarRespuesta($resultado);
+            echo $resultado;
+            break;
         case 'user-data':
             $authHeader = getallheaders();
             list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
@@ -342,20 +292,21 @@ if (isset($_GET['action'])) {
             }
             break;
 
-        case 'register-user':
+        case 'register-user': // Acciones de usuario
             $data = json_decode(file_get_contents("php://input"), true);
 
-            if (isset($data['name'], $data['cuit'], $data['email'], $data['tel'], $data['password'])) {
-                $name = $data['name'];
-                $cuit = $data['cuit'];
-                $email = $data['email'];
-                $tel = $data['tel'];
-                $password = password_hash($data['password'], PASSWORD_BCRYPT);
+            if (isset($data['data']['name'], $data['data']['cuit'], $data['data']['email'], $data['data']['tel'], $data['data']['password'])) {
+                $name = $data['data']['name'];
+                $cuit = $data['data']['cuit'];
+                $email = $data['data']['email'];
+                $tel = $data['data']['tel'];
+                $password = password_hash($data['data']['password'], PASSWORD_BCRYPT);
                 $approved = false;
+                $register_date = $data['date'];
 
                 try {
-                    $sql = $con->prepare("INSERT INTO users (name, cuit, email, password, approved) VALUES (?,?, ?, ?, ?)");
-                    $sql->execute([$name, $cuit, $email, $password, $approved]);
+                    $sql = $con->prepare("INSERT INTO users (name, cuit, email, password, approved, register_date) VALUES (?,?, ?, ?, ?, ?)");
+                    $sql->execute([$name, $cuit, $email, $password, $approved, $register_date]);
 
                     if ($sql->rowCount() > 0) {
                         enviarRespuesta(['success' => true, 'message' => 'Usuario registrado exitosamente']);
@@ -445,36 +396,28 @@ if (isset($_GET['action'])) {
             break;
 
         case 'reset-password':
-            $authHeader = getallheaders();
-            list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
-            $decoded = verificarToken($jwt);
+            $data = json_decode(file_get_contents("php://input"), true);
+            $token = $data['token'];
+            $newPassword = $data['newPassword'];
 
-            if ($decoded) {
-                $data = json_decode(file_get_contents("php://input"), true);
-                $token = $data['token'];
-                $newPassword = $data['newPassword'];
+            // Verificar token en la base de datos
+            $sql = $con->prepare("SELECT user_id FROM password_resets WHERE token = ? AND expires_at > NOW()");
+            $sql->execute([$token]);
 
-                // Verificar token en la base de datos
-                $sql = $con->prepare("SELECT user_id FROM password_resets WHERE token = ? AND expires_at > NOW()");
-                $sql->execute([$token]);
+            if ($sql->rowCount() > 0) {
+                $user = $sql->fetch(PDO::FETCH_ASSOC);
 
-                if ($sql->rowCount() > 0) {
-                    $user = $sql->fetch(PDO::FETCH_ASSOC);
+                $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT);
+                $updatePassword = $con->prepare("UPDATE users SET password = ? WHERE id = ?");
+                $updatePassword->execute([$hashedPassword, $user['user_id']]);
 
-                    $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT);
-                    $updatePassword = $con->prepare("UPDATE users SET password = ? WHERE id = ?");
-                    $updatePassword->execute([$hashedPassword, $user['user_id']]);
+                // Eliminar el token usado
+                $deleteToken = $con->prepare("DELETE FROM password_resets WHERE token = ?");
+                $deleteToken->execute([$token]);
 
-                    // Eliminar el token usado
-                    $deleteToken = $con->prepare("DELETE FROM password_resets WHERE token = ?");
-                    $deleteToken->execute([$token]);
-
-                    enviarRespuesta(['success' => true, 'message' => 'Contraseña restablecida correctamente.']);
-                } else {
-                    enviarRespuesta(['success' => false, 'message' => 'Token inválido o expirado.']);
-                }
+                enviarRespuesta(['success' => true, 'message' => 'Contraseña restablecida correctamente.']);
             } else {
-                enviarRespuesta(['success' => false, 'message' => 'Token inválido o expirado']);
+                enviarRespuesta(['success' => false, 'message' => 'Token inválido o expirado.']);
             }
             break;
 
@@ -753,7 +696,7 @@ if (isset($_GET['action'])) {
                 enviarRespuesta(['success' => false, 'message' => 'Token inválido o expirado']);
             }
             break;
-        case 'register-product':
+        case 'register-product':  // Acciones de administrador  -productos
             $authHeader = getallheaders();
             list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
             $decoded = verificarToken($jwt);
@@ -868,6 +811,50 @@ if (isset($_GET['action'])) {
                 enviarRespuesta(['success' => false, 'message' => 'Token inválido o expirado']);
             }
             break;
+        case 'update-price':
+            $authHeader = getallheaders();
+            list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
+            $decoded = verificarToken($jwt);
+
+            if ($decoded) {
+                $data = json_decode(file_get_contents("php://input"), true);
+
+                if (isset($data['percentage'])) {
+                    $percentage = $data['percentage'];
+                    $productIds = $data['productIds'] ?? [];
+
+                    $factor = 1 + ($percentage / 100);
+
+                    if (empty($productIds)) {
+                        $sql = $con->prepare("UPDATE products SET price = price * :factor");
+                        $sql->execute([':factor' => $factor]);
+                    } else {
+                        $placeholders = [];
+                        $params = [':factor' => $factor];
+
+                        foreach ($productIds as $index => $id) {
+                            $paramName = ":id$index";
+                            $placeholders[] = $paramName;
+                            $params[$paramName] = $id;
+                        }
+
+                        $placeholdersString = implode(',', $placeholders);
+                        $sql = $con->prepare("UPDATE products SET price = price * :factor WHERE id IN ($placeholdersString)");
+                        $sql->execute($params);
+                    }
+
+                    if ($sql->rowCount() > 0) {
+                        enviarRespuesta(['success' => true, 'message' => 'Precios actualizados exitosamente']);
+                    } else {
+                        enviarRespuesta(['success' => false, 'message' => 'No se pudo actualizar la lista de precios']);
+                    }
+                } else {
+                    enviarRespuesta(['success' => false, 'message' => 'Datos incompletos']);
+                }
+            } else {
+                enviarRespuesta(['success' => false, 'message' => 'Token inválido o expirado']);
+            }
+            break;
 
         case 'upload-images-products':
             $authHeader = getallheaders();
@@ -909,7 +896,7 @@ if (isset($_GET['action'])) {
                             $priority = $_POST[$priorityKey] ?? null;
 
                             if ($priority !== null && $file['error'] === UPLOAD_ERR_OK) {
-                                $filePath = '/uploads/' . basename($file['name']);
+                                $filePath = '/uploads/products/' . basename($file['name']);
                                 if (move_uploaded_file($file['tmp_name'], __DIR__ . $filePath)) {
                                     // Insertar la nueva imagen en la base de datos
                                     $sql = $con->prepare("INSERT INTO products_images (product_id, img_url, priority) VALUES (?, ?, ?)");
@@ -975,11 +962,12 @@ if (isset($_GET['action'])) {
                             }
 
                             $priority = $_POST[$priorityKey];
-                            $result = uploadImagesProducts($con, $file, $priority, $productId);
-
-                            if (!$result['success']) {
-                                $imageUploadSuccess = false;
-                                break;
+                            $filePath = '/uploads/products/' . basename($file['name']);
+                            if (move_uploaded_file($file['tmp_name'], __DIR__ . $filePath)) {
+                                // Insertar la nueva imagen en la base de datos
+                                $sql = $con->prepare("INSERT INTO products_images (product_id, img_url, priority) VALUES (?, ?, ?)");
+                                $sql->execute([$productId, $filePath, $priority]);
+                                $updatedImages[] = $con->lastInsertId();
                             }
                         }
                     }
@@ -1000,11 +988,425 @@ if (isset($_GET['action'])) {
                 enviarRespuesta(['success' => false, 'message' => 'Token inválido o expirado']);
             }
             break;
+        case 'change-approved': // -usuarios
+            $authHeader = getallheaders();
+            list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
+            $decoded = verificarToken($jwt);
+
+            if ($decoded) {
+                $data = json_decode(file_get_contents("php://input"), true);
+
+                if (isset($data['id'])) {
+                    $id = $data['id'];
+
+                    $sql = $con->prepare("UPDATE users SET approved = NOT approved, new = 0 WHERE id = :id");
+                    $sql->execute([':id' => $id]);
+
+                    if ($sql->rowCount() > 0) {
+                        enviarRespuesta(['success' => true, 'message' => 'Estado de aprovación del usuario modificado exitosamente']);
+                    } else {
+                        enviarRespuesta(['success' => false, 'message' => 'No se pudo modificar el estado de aprovación del usuario']);
+                    }
+                }
+            }
+            break;
+        case 'change-role':
+            $authHeader = getallheaders();
+            list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
+            $decoded = verificarToken($jwt);
+
+            if ($decoded) {
+                $data = json_decode(file_get_contents("php://input"), true);
+
+                if (isset($data['id'])) {
+                    $id = $data['id'];
+
+                    $sql = $con->prepare("
+                        UPDATE users
+                        SET role = CASE
+                            WHEN role = 'user' THEN 'admin'
+                            ELSE 'user'
+                        END,
+                        new = 0
+                        WHERE id = :id
+                    ");
+                    $sql->execute([':id' => $id]);
+
+                    if ($sql->rowCount() > 0) {
+                        enviarRespuesta(['success' => true, 'message' => 'Estado de aprovación del usuario modificado exitosamente']);
+                    } else {
+                        enviarRespuesta(['success' => false, 'message' => 'No se pudo modificar el estado de aprovación del usuario']);
+                    }
+                }
+            }
+            break;
+
+        case 'delete-user':
+            $authHeader = getallheaders();
+            list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
+            $decoded = verificarToken($jwt);
+
+            if ($decoded) {
+                $data = json_decode(file_get_contents("php://input"), true);
+
+                if (isset($data['id'])) {
+                    $id = $data['id'];
+
+                    $sql = $con->prepare("DELETE FROM users WHERE id = :id");
+                    $sql->execute([':id' => $id]);
+
+                    if ($sql->rowCount() > 0) {
+                        enviarRespuesta(['success' => true, 'message' => 'El usuario se eliminó exitosamente']);
+                    } else {
+                        enviarRespuesta(['success' => false, 'message' => 'No se pudo eliminar el usuario']);
+                    }
+                }
+            }
+            break;
+        case 'update-state-order': // -ordenes
+            $authHeader = getallheaders();
+            list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
+            $decoded = verificarToken($jwt);
+
+            if ($decoded) {
+                $data = json_decode(file_get_contents("php://input"), true);
+
+                if (isset($data['orderId'], $data['newState'])) {
+                    $id_order = $data['orderId'];
+                    $state = $data['newState'];
+
+                    $sql = $con->prepare("UPDATE orders SET state = :state WHERE id_order = :id_order");
+                    $sql->execute([
+                        ':id_order' => $id_order,
+                        ':state' => $state
+                    ]);
+
+                    if ($sql->rowCount() > 0) {
+                        enviarRespuesta(['success' => true, 'message' => 'El estado de la orden se actualizó exitosamente']);
+                    } else {
+                        enviarRespuesta(['success' => false, 'message' => 'No se pudo actualizar el estado de la orden']);
+                    }
+                }
+            }
+            break;
+        case 'update-new':
+            $authHeader = getallheaders();
+            list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
+            $decoded = verificarToken($jwt);
+
+            if ($decoded) {
+                $data = json_decode(file_get_contents("php://input"), true);
+
+                if (isset($data['orderId'])) {
+                    $orderId = $data['orderId'];
+
+                    $sql = $con->prepare("UPDATE orders SET new = 0 WHERE id_order = :orderId");
+                    $sql->execute([':orderId' => $orderId]);
+
+                    if ($sql->rowCount() > 0) {
+                        enviarRespuesta(['success' => true, 'message' => 'Orden actualizada exitosamente']);
+                    } else {
+                        enviarRespuesta(['success' => false, 'message' => 'No se pudo actualizar la orden']);
+                    }
+                }
+            }
+            break;
+
+        case 'delete-order':
+            $authHeader = getallheaders();
+            list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
+            $decoded = verificarToken($jwt);
+
+            if ($decoded) {
+                $data = json_decode(file_get_contents("php://input"), true);
+
+                if (isset($data['orderId'])) {
+                    $id_order = $data['orderId'];
+
+                    $sql = $con->prepare("DELETE FROM orders WHERE id_order = :id_order");
+                    $sql->execute([
+                        ':id_order' => $id_order,
+                    ]);
+
+                    if ($sql->rowCount() > 0) {
+                        enviarRespuesta(['success' => true, 'message' => 'La orden se eliminó exitosamente']);
+                    } else {
+                        enviarRespuesta(['success' => false, 'message' => 'No se eliminar la orden']);
+                    }
+                }
+            }
+            break;
+        case 'add-gallery': // -galería
+            $authHeader = getallheaders();
+            list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
+            $decoded = verificarToken($jwt);
+
+            if ($decoded) {
+                // Verificar si el archivo fue enviado correctamente
+                if (!empty($_FILES['image']['tmp_name']) && isset($_POST['priority'])) {
+                    $image = $_FILES['image'];
+                    $priority = intval($_POST['priority']);
+
+                    // Validar tipo de archivo
+                    $allowedTypes = ['image/jpeg', 'image/png'];
+                    if (!in_array($image['type'], $allowedTypes)) {
+                        echo json_encode([
+                            'success' => false,
+                            'message' => 'Tipo de archivo no permitido.',
+                        ]);
+                        break;
+                    }
+
+                    // Crear directorio si no existe
+                    $targetDir = './uploads/img-gallery/';
+
+                    // Generar un nombre único para el archivo
+                    $fileName = uniqid() . "_" . basename($image['name']);
+                    $targetFile = $targetDir . $fileName;
+
+                    if (move_uploaded_file($image['tmp_name'], $targetFile)) {
+                        // Insertar datos en la base de datos
+                        $sql = $con->prepare("INSERT INTO gallery_images (img_url, priority) VALUES (?, ?)");
+                        if ($sql->execute([$targetFile, $priority])) {
+                            echo json_encode([
+                                'success' => true,
+                                'message' => 'Imagen añadida exitosamente.',
+                            ]);
+                        } else {
+                            echo json_encode([
+                                'success' => false,
+                                'message' => 'Error al guardar la imagen en la base de datos.',
+                            ]);
+                        }
+                    } else {
+                        echo json_encode([
+                            'success' => false,
+                            'message' => 'Error al mover el archivo subido.',
+                        ]);
+                    }
+                } else {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Archivo o prioridad no enviados.',
+                    ]);
+                }
+            }
+
+            break;
+        case 'update-gallery':
+            $authHeader = getallheaders();
+            list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
+            $decoded = verificarToken($jwt);
+
+            if ($decoded) {
+                $payload = json_decode(file_get_contents('php://input'), true);
+                $updatedImages = $payload['images'] ?? [];
+
+                if (!empty($updatedImages)) {
+                    try {
+                        $con->beginTransaction();
+
+                        $imageIds = array_map(function ($img) {
+                            return $img['id'];
+                        }, $updatedImages);
+                        $placeholders = rtrim(str_repeat('?, ', count($imageIds)), ', ');
+
+                        $sqlDelete = "DELETE FROM gallery_images WHERE id NOT IN ($placeholders)";
+                        $stmtDelete = $con->prepare($sqlDelete);
+                        $stmtDelete->execute($imageIds);
+
+                        foreach ($updatedImages as $index => $image) {
+                            $sqlUpdate = "UPDATE gallery_images SET priority = ? WHERE id = ?";
+                            $stmtUpdate = $con->prepare($sqlUpdate);
+                            $stmtUpdate->execute([($index + 1), $image['id']]);
+                        }
+
+                        $con->commit();
+                        echo json_encode(['success' => true, 'message' => 'Galería actualizada correctamente']);
+                    } catch (PDOException $e) {
+                        $con->rollBack();
+                        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+                    }
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'No images provided.']);
+                }
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Invalid token.']);
+            }
+            break;
+        case 'update_companyInfo': // -cuenta
+            $authHeader = getallheaders();
+            list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
+            $decoded = verificarToken($jwt);
+
+            if ($decoded) {
+                $data = json_decode(file_get_contents('php://input'), true);
+
+                if (isset($data['email'], $data['store_address'], $data['tel'])) {
+                    try {
+                        // Preparar la consulta
+                        $sql = "UPDATE company_info SET value = ? WHERE `key` = ?";
+                        $stmt = $con->prepare($sql);
+
+                        // Ejecutar una consulta para cada par key-value
+                        foreach ($data as $key => $value) {
+                            $stmt->execute([$value, $key]);
+                        }
+
+                        enviarRespuesta(['success' => true, 'message' => 'Información actualizada']);
+                    } catch (PDOException $e) {
+                        error_log('Database error: ' . $e->getMessage());
+                        enviarRespuesta(['success' => false, 'message' => 'Error en la base de datos: ' . $e->getMessage()]);
+                    }
+                } else {
+                    enviarRespuesta(['success' => false, 'message' => 'Datos incompletos']);
+                }
+            } else {
+                enviarRespuesta(['success' => false, 'message' => 'Token inválido o expirado']);
+            }
+            break;
+        case 'update_social':
+            $authHeader = getallheaders();
+            list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
+            $decoded = verificarToken($jwt);
+
+            if ($decoded) {
+                if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+                    if (isset($_FILES['img_social']) && isset($_POST['id']) && isset($_POST['social_url'])) {
+                        // Obtener la información del formulario
+                        $id = $_POST['id'];
+                        $social_url = $_POST['social_url'];
+                        $img_social = $_FILES['img_social'];
+
+                        // Verificar si el archivo se subió correctamente
+                        if ($img_social['error'] === UPLOAD_ERR_OK) {
+                            // Directorio donde guardarás la imagen
+                            $filePath = '/uploads/social/' . basename($img_social['name']); // Corregir el uso de variable
+
+                            // Mover el archivo a su ubicación final
+                            if (move_uploaded_file($img_social['tmp_name'], __DIR__ . $filePath)) {
+                                // Verificar si el registro ya existe en la base de datos
+                                $sqlCheck = "SELECT * FROM social_networks WHERE id = :id";
+                                $stmtCheck = $con->prepare($sqlCheck);
+                                $stmtCheck->execute([':id' => $id]);
+                                $existingRecord = $stmtCheck->fetch();
+
+                                if ($existingRecord) {
+                                    // Si el registro existe, actualizarlo
+                                    $sqlUpdate = "UPDATE social_networks SET img_social = :img_social, url = :social_url WHERE id = :id";
+                                    $stmtUpdate = $con->prepare($sqlUpdate);
+                                    $stmtUpdate->execute([
+                                        ':img_social' => $filePath, // Usar la ruta definida en $filePath
+                                        ':social_url' => $social_url,
+                                        ':id' => $id
+                                    ]);
+                                    enviarRespuesta(['success' => true, 'message' => 'Red social actualizada correctamente']);
+                                } else {
+                                    // Si el registro no existe, insertarlo
+                                    $sqlInsert = "INSERT INTO social_networks (id, img_social, url) VALUES (:id, :img_social, :social_url)";
+                                    $stmtInsert = $con->prepare($sqlInsert);
+                                    $stmtInsert->execute([
+                                        ':id' => $id,
+                                        ':img_social' => $filePath,
+                                        ':social_url' => $social_url
+                                    ]);
+                                    enviarRespuesta(['success' => true, 'message' => 'Red social agregada correctamente']);
+                                }
+                            } else {
+                                enviarRespuesta(['success' => false, 'message' => 'Error al subir el archivo']);
+                            }
+                        } else {
+                            enviarRespuesta(['success' => false, 'message' => 'Error en la subida del archivo']);
+                        }
+                    } else {
+                        enviarRespuesta(['success' => false, 'message' => 'Datos incompletos']);
+                    }
+                }
+            }
+            break;
+        case 'delete-social':
+            $authHeader = getallheaders();
+            list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
+            $decoded = verificarToken($jwt);
+
+            if ($decoded) {
+                $data = json_decode(file_get_contents("php://input"), true);
+
+                if (isset($data['id'])) {
+                    $id = $data['id'];
+
+                    $sql = $con->prepare("DELETE FROM social_networks WHERE id = :id");
+                    $sql->execute([
+                        ':id' => $id,
+                    ]);
+
+                    if ($sql->rowCount() > 0) {
+                        enviarRespuesta(['success' => true, 'message' => 'La red social se eliminó exitosamente']);
+                    } else {
+                        enviarRespuesta(['success' => false, 'message' => 'No se eliminar la red social']);
+                    }
+                }
+            }
+            break;
+        case 'update-shipping':
+            $authHeader = getallheaders();
+            list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
+            $decoded = verificarToken($jwt);
+
+            if ($decoded) {
+                $data = json_decode(file_get_contents("php://input"), true);
+
+                if (!isset($data['updatedShipping']) || !is_array($data['updatedShipping'])) {
+                    enviarRespuesta(['success' => false, 'message' => 'Datos inválidos']);
+                    break;
+                }
+
+                $updates = $data['updatedShipping'];
+                $anyUpdateFailed = false;
+
+                foreach ($updates as $update) {
+                    if (isset($update['id_shipping'], $update['description'], $update['price'])) {
+                        $id_shipping = $update['id_shipping'];
+                        $description = $update['description'];
+                        $price = $update['price'];
+
+                        try {
+                            $sql = $con->prepare("UPDATE shipping SET description = :description, price = :price  WHERE id_shipping = :id_shipping");
+
+                            $sql->execute([
+                                ':id_shipping' => $id_shipping,
+                                ':description' => $description,
+                                ':price' => $price,
+                            ]);
+
+                            if (!$sql) {
+                                $anyUpdateFailed = true;
+                            }
+
+                        } catch (PDOException $e) {
+                            $anyUpdateFailed = true;
+                            error_log("Error en la actualización de envío: " . $e->getMessage());
+                        }
+                    } else {
+                        $anyUpdateFailed = true;
+                    }
+                }
+
+                if (!$anyUpdateFailed) {
+                    enviarRespuesta(['success' => true, 'message' => 'La información de envío se actualizó exitosamente']);
+                } else {
+                    enviarRespuesta(['success' => false, 'message' => 'No se pudo actualizar toda la información']);
+                }
+            } else {
+                enviarRespuesta(['success' => false, 'message' => 'Token inválido']);
+            }
+            break;
 
         default:
-            enviarRespuesta(['error' => 'acción no válida']);
+            enviarRespuesta(['success' => false, 'error' => 'acción no válida']);
             break;
     }
 } else {
-    enviarRespuesta(['error' => 'acción no válida']);
+    enviarRespuesta(['error' => 'Acción no válida']);
 }
