@@ -4,6 +4,8 @@
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
+error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE); // Oculta advertencias y avisos
+ini_set('display_errors', 0); // No muestra errores en la salida
 
 require_once 'database.php';
 require_once 'config.php';
@@ -52,13 +54,13 @@ if (isset($_GET['action'])) {
             try {
                 $authHeader = getallheaders();
                 list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
-        
+
                 if (empty($jwt)) {
                     throw new Exception("Token ausente");
                 }
-        
+
                 $decoded = verificarToken($jwt);
-        
+
                 if ($decoded) {
                     enviarRespuesta(['success' => true, 'message' => 'Token válido', 'data' => $decoded]);
                 } else {
@@ -164,7 +166,9 @@ if (isset($_GET['action'])) {
                 }
             }
 
-            enviarRespuesta(array_values($usuarios));
+            $usuariosArray = array_values($usuarios);
+
+            enviarRespuesta($usuariosArray);
             break;
         case 'orders':
             $sql = $con->prepare("
@@ -203,7 +207,7 @@ if (isset($_GET['action'])) {
 
             enviarRespuesta(array_values($ordenes));
             break;
-        case 'company_info':
+        case 'company-info':
             $sql = $con->prepare("SELECT * FROM company_info");
             $sql->execute();
             $resultado = $sql->fetchAll(PDO::FETCH_ASSOC);
@@ -226,6 +230,13 @@ if (isset($_GET['action'])) {
             break;
         case 'gallery':
             $sql = $con->prepare("SELECT * FROM gallery_images");
+            $sql->execute();
+            $resultado = $sql->fetchAll(PDO::FETCH_ASSOC);
+            enviarRespuesta($resultado);
+            echo $resultado;
+            break;
+        case 'list-price':
+            $sql = $con->prepare("SELECT * FROM list_price");
             $sql->execute();
             $resultado = $sql->fetchAll(PDO::FETCH_ASSOC);
             enviarRespuesta($resultado);
@@ -292,55 +303,65 @@ if (isset($_GET['action'])) {
             }
             break;
 
-            case 'register-user':
-                $data = json_decode(file_get_contents("php://input"), true);
-            
-                if (isset($data['data']['name'], $data['data']['cuit'], $data['data']['email'], $data['data']['tel'], $data['data']['password'])) {
-                    $name = $data['data']['name'];
-                    $cuit = $data['data']['cuit'];
-                    $email = $data['data']['email'];
-                    $tel = $data['data']['tel'];
-                    $password = $data['data']['password'];
-            
-                    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                        enviarRespuesta(['success' => false, 'message' => 'El email no tiene un formato válido']);
-                        break;
-                    }
-            
-                    $passwordHashed = password_hash($password, PASSWORD_BCRYPT);
-                    $approved = false;
-                    $register_date = date('Y-m-d H:i:s');
-            
-                    try {
+        case 'register-user':
+            $data = json_decode(file_get_contents("php://input"), true);
 
-                        $sql = $con->prepare("INSERT INTO users (name, cuit, email, password, approved, register_date) VALUES (?, ?, ?, ?, ?, ?)");
-                        $sql->execute([$name, $cuit, $email, $passwordHashed, $approved, $register_date]);
-            
-                        if ($sql->rowCount() > 0) {
-                            enviarRespuesta(['success' => true, 'message' => 'Usuario registrado exitosamente']);
-                        } else {
-                            enviarRespuesta(['success' => false, 'message' => 'No se pudo registrar el usuario']);
-                        }
-                    } catch (PDOException $e) {
-                        if ($e->getCode() == 23000) {
-                            enviarRespuesta(['success' => false, 'message' => 'Este usuario ya está registrado']);
-                        } else {
-                            enviarRespuesta(['success' => false, 'message' => 'Error en la base de datos: ' . $e->getMessage()]);
-                        }
-                    }
-                } else {
-                    enviarRespuesta(['success' => false, 'message' => 'Datos incompletos']);
+            if (isset($data['data']['name'], $data['data']['cuit'], $data['data']['email'], $data['data']['tel'], $data['data']['password'])) {
+                $name = $data['data']['name'];
+                $cuit = $data['data']['cuit'];
+                $email = $data['data']['email'];
+                $tel = $data['data']['tel'];
+                $password = $data['data']['password'];
+
+                if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    enviarRespuesta(['success' => false, 'message' => 'El email no tiene un formato válido']);
+                    break;
                 }
-                break;
 
-        case 'login':
+                $passwordHashed = password_hash($password, PASSWORD_BCRYPT);
+                $approved = false;
+                $register_date = date('Y-m-d H:i:s');
+
+                try {
+
+                    $sql = $con->prepare("INSERT INTO users (name, cuit, email, password, approved, register_date) VALUES (?, ?, ?, ?, ?, ?)");
+                    $sql->execute([$name, $cuit, $email, $passwordHashed, $approved, $register_date]);
+
+                    if ($sql->rowCount() > 0) {
+                        enviarRespuesta(['success' => true, 'message' => 'Usuario registrado exitosamente']);
+                    } else {
+                        enviarRespuesta(['success' => false, 'message' => 'No se pudo registrar el usuario']);
+                    }
+                } catch (PDOException $e) {
+                    if ($e->getCode() == 23000) {
+                        enviarRespuesta(['success' => false, 'message' => 'Este usuario ya está registrado']);
+                    } else {
+                        enviarRespuesta(['success' => false, 'message' => 'Error en la base de datos: ' . $e->getMessage()]);
+                    }
+                }
+            } else {
+                enviarRespuesta(['success' => false, 'message' => 'Datos incompletos']);
+            }
+            break;
+
+        case 'login': // Acciones de usuario
             $data = json_decode(file_get_contents("php://input"), true);
 
             $email = $data['email'];
             $password = $data['password'];
 
+            if (empty($email) || empty($password)) {
+                enviarRespuesta(['success' => false, 'message' => 'Email y contraseña son requeridos']);
+                exit;
+            }
+
             $sql = $con->prepare("SELECT id, password, approved, role FROM users WHERE email = ?");
             $sql->execute([$email]);
+
+            if (!$sql) {
+                enviarRespuesta(['success' => false, 'message' => 'Error al consultar la base de datos']);
+                exit;
+            }
 
             if ($sql->rowCount() > 0) {
                 $user = $sql->fetch(PDO::FETCH_ASSOC);
@@ -666,7 +687,7 @@ if (isset($_GET['action'])) {
                     $data['data']['products'],
                     $data['data']['total_price'],
                     $data['data']['address']['id_address'],
-                    $data['data']['shipping']['id'],
+                    $data['data']['shipping']['id_shipping'],
                     $data['data']['state'],
                     $data['data']['date']
                 )) {
@@ -675,7 +696,7 @@ if (isset($_GET['action'])) {
                     $products = $data['data']['products'];
                     $total_price = $data['data']['total_price'];
                     $shipping_address = $data['data']['address']['id_address'];
-                    $shipping_type = $data['data']['shipping']['id'];
+                    $shipping_type = $data['data']['shipping']['id_shipping'];
                     $state = $data['data']['state'];
                     $date = date('Y-m-d H:i:s', strtotime($data['data']['date']));
 
@@ -863,66 +884,175 @@ if (isset($_GET['action'])) {
                 enviarRespuesta(['success' => false, 'message' => 'Token inválido o expirado']);
             }
             break;
-
-        case 'upload-images-products':
+        case 'update-list-price':
             $authHeader = getallheaders();
             list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
             $decoded = verificarToken($jwt);
 
             if ($decoded) {
-                if (isset($_POST['productId'])) {
-                    $productId = $_POST['productId'];
-                    $updatedImages = [];
-                    $deletedImages = $_POST['deletedImages'] ?? [];
+                // Leer datos del archivo y otros datos del formulario
+                if (!empty($_FILES['list_price']['tmp_name'])) {
+                    $fileTmpName = $_FILES['list_price']['tmp_name'];
+                    $fileName = basename($_FILES['list_price']['name']);
+                    $fileName = str_replace(' ', '_', $fileName);
 
-                    if (!empty($_POST['deletedImages'])) {
-                        foreach ($_POST['deletedImages'] as $imageId) {
-                            $deleteQuery = "DELETE FROM products_images WHERE id_img = ?";
-                            $sql = $con->prepare($deleteQuery);
-                            $sql->execute([$imageId]);
+                    $uploadDirectory = 'uploads/list_price/';
+                    $uploadDate = date("Y-m-d H:i:s");
+
+                    $files = glob($uploadDirectory . '*');
+                    foreach ($files as $file) {
+                        if (is_file($file)) {
+                            unlink($file);
                         }
                     }
+                    // Validar que el archivo sea PDF
+                    if (pathinfo($fileName, PATHINFO_EXTENSION) !== 'pdf') {
+                        enviarRespuesta(['success' => false, 'message' => 'El archivo debe ser un PDF']);
+                        exit;
+                    }
 
-                    foreach ($_POST as $key => $value) {
-                        if (strpos($key, 'existingImageId') === 0) {
-                            $imageId = $value;
-                            $priorityKey = str_replace('existingImageId', 'priority', $key);
-                            $priority = $_POST[$priorityKey] ?? null;
+                    // Generar un nombre único para evitar conflictos
+                    $uniqueFileName = uniqid() . '-' . $fileName;
+                    $uploadPath = $uploadDirectory . $uniqueFileName;
 
-                            if ($priority !== null) {
-                                $sql = $con->prepare("UPDATE products_images SET priority = ? WHERE id_img = ? AND product_id = ?");
-                                $sql->execute([$priority, $imageId, $productId]);
-                                $updatedImages[] = $imageId;
+                    // Mover el archivo a la carpeta de uploads
+                    if (move_uploaded_file($fileTmpName, $uploadPath)) {
+                        try {
+                            $sql1 = $con->prepare("TRUNCATE TABLE `luzinterior`.`list_price`");
+                            $sql1->execute();
+                            // Guardar la ruta del archivo en la base de datos
+                            $sql = $con->prepare("INSERT INTO list_price (list_price, date) VALUES (:list_price, :upload_date)");
+                            $sql->execute([
+                                ':list_price' => $uploadPath,
+                                ':upload_date' => $uploadDate,
+                            ]);
+
+                            if ($sql->rowCount() > 0) {
+                                enviarRespuesta(['success' => true, 'message' => 'Archivo subido y ruta guardada exitosamente']);
+                            } else {
+                                enviarRespuesta(['success' => false, 'message' => 'No se pudo guardar la ruta en la base de datos']);
+                            }
+                        } catch (PDOException $e) {
+                            enviarRespuesta(['success' => false, 'message' => 'Error al guardar la ruta en la base de datos']);
+                        }
+                    } else {
+                        enviarRespuesta(['success' => false, 'message' => 'Error al mover el archivo a la carpeta de uploads']);
+                    }
+                } else {
+                    enviarRespuesta(['success' => false, 'message' => 'No se recibió un archivo para subir']);
+                }
+            } else {
+                enviarRespuesta(['success' => false, 'message' => 'Token inválido o expirado']);
+            }
+            break;
+        case 'get-list-price':
+            $uploadDirectory = 'uploads/list_price/'; // Carpeta de subida
+            $files = glob($uploadDirectory . '*'); // Obtener todos los archivos en la carpeta
+
+            if (!empty($files)) {
+                $fileName = basename($files[0]); // Tomar el primer archivo
+                $fileUrl = $uploadDirectory . $fileName; // Crear la URL relativa del archivo
+
+                echo json_encode([
+                    'success' => true,
+                    'fileUrl' => $fileUrl // Ruta completa para acceder al archivo
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'No hay archivos disponibles.'
+                ]);
+            }
+            break;
+            case 'upload-images-products':
+                $authHeader = getallheaders();
+                list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
+                $decoded = verificarToken($jwt);
+            
+                if ($decoded) {
+                    if (isset($_POST['productId'])) {
+                        $productId = $_POST['productId'];
+                        $updatedImages = [];
+                        $deletedImages = $_POST['deletedImages'] ?? [];
+            
+                        // Eliminar imágenes seleccionadas de la base de datos y del sistema de archivos
+                        if (!empty($deletedImages)) {
+                            foreach ($deletedImages as $imageId) {
+                                // Obtener la URL de la imagen antes de eliminarla
+                                $getImageQuery = "SELECT img_url FROM products_images WHERE id_img = ?";
+                                $stmtGetImage = $con->prepare($getImageQuery);
+                                $stmtGetImage->execute([$imageId]);
+                                $image = $stmtGetImage->fetch(PDO::FETCH_ASSOC);
+            
+                                if ($image) {
+                                    $filePath = __DIR__ . $image['img_url'];
+                                    if (is_file($filePath)) {
+                                        unlink($filePath); // Eliminar el archivo físico
+                                    }
+                                }
+            
+                                // Eliminar el registro de la base de datos
+                                $deleteQuery = "DELETE FROM products_images WHERE id_img = ?";
+                                $stmtDelete = $con->prepare($deleteQuery);
+                                $stmtDelete->execute([$imageId]);
                             }
                         }
-                    }
-
-                    // Procesar nuevas imágenes
-                    foreach ($_FILES as $key => $file) {
-                        if (strpos($key, 'image') === 0) {
-                            $priorityKey = str_replace('image', 'priority', $key);
-                            $priority = $_POST[$priorityKey] ?? null;
-
-                            if ($priority !== null && $file['error'] === UPLOAD_ERR_OK) {
-                                $filePath = '/uploads/products/' . basename($file['name']);
-                                if (move_uploaded_file($file['tmp_name'], __DIR__ . $filePath)) {
-                                    // Insertar la nueva imagen en la base de datos
-                                    $sql = $con->prepare("INSERT INTO products_images (product_id, img_url, priority) VALUES (?, ?, ?)");
-                                    $sql->execute([$productId, $filePath, $priority]);
-                                    $updatedImages[] = $con->lastInsertId();
+            
+                        // Actualizar prioridades de las imágenes existentes si quedan imágenes
+                        if (!empty($_POST['existingImageId'])) {
+                            foreach ($_POST as $key => $value) {
+                                if (strpos($key, 'existingImageId') === 0) {
+                                    $imageId = $value;
+                                    $priorityKey = str_replace('existingImageId', 'priority', $key);
+                                    $priority = $_POST[$priorityKey] ?? null;
+            
+                                    if ($priority !== null) {
+                                        $updateQuery = "UPDATE products_images SET priority = ? WHERE id_img = ? AND product_id = ?";
+                                        $stmtUpdate = $con->prepare($updateQuery);
+                                        $stmtUpdate->execute([$priority, $imageId, $productId]);
+                                        $updatedImages[] = $imageId;
+                                    }
                                 }
                             }
                         }
+            
+                        // Procesar nuevas imágenes
+                        foreach ($_FILES as $key => $file) {
+                            if (strpos($key, 'image') === 0) {
+                                $priorityKey = str_replace('image', 'priority', $key);
+                                $priority = $_POST[$priorityKey] ?? null;
+            
+                                if ($priority !== null && $file['error'] === UPLOAD_ERR_OK) {
+                                    $filePath = '/uploads/products/' . basename($file['name']);
+                                    if (move_uploaded_file($file['tmp_name'], __DIR__ . $filePath)) {
+                                        // Insertar la nueva imagen en la base de datos
+                                        $insertQuery = "INSERT INTO products_images (product_id, img_url, priority) VALUES (?, ?, ?)";
+                                        $stmtInsert = $con->prepare($insertQuery);
+                                        $stmtInsert->execute([$productId, $filePath, $priority]);
+                                        $updatedImages[] = $con->lastInsertId();
+                                    }
+                                }
+                            }
+                        }
+            
+                        // Verificar si quedan imágenes después de todas las operaciones
+                        $checkImagesQuery = "SELECT COUNT(*) AS image_count FROM products_images WHERE product_id = ?";
+                        $stmtCheckImages = $con->prepare($checkImagesQuery);
+                        $stmtCheckImages->execute([$productId]);
+                        $imageCount = $stmtCheckImages->fetch(PDO::FETCH_ASSOC)['image_count'];
+            
+                        if ($imageCount === 0) {
+                            echo json_encode(['success' => true, 'message' => 'Todas las imágenes eliminadas correctamente.']);
+                        } else {
+                            echo json_encode(['success' => true, 'updatedImages' => $updatedImages]);
+                        }
+                    } else {
+                        echo json_encode(['success' => false, 'message' => 'Faltan datos necesarios.']);
                     }
-
-                    echo json_encode(['success' => true, 'updatedImages' => $updatedImages]);
                 } else {
-                    echo json_encode(['success' => false, 'message' => 'Faltan datos necesarios.']);
+                    echo json_encode(['success' => false, 'message' => 'Token inválido.']);
                 }
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Token inválido.']);
-            }
-            break;
+                break;
 
         case 'register-prod-and-img':
             $authHeader = getallheaders();
@@ -1060,13 +1190,21 @@ if (isset($_GET['action'])) {
                 if (isset($data['id'])) {
                     $id = $data['id'];
 
-                    $sql = $con->prepare("DELETE FROM users WHERE id = :id");
-                    $sql->execute([':id' => $id]);
+                    try {
+                        $sql = $con->prepare("DELETE FROM users WHERE id = :id");
+                        $sql->execute([':id' => $id]);
 
-                    if ($sql->rowCount() > 0) {
-                        enviarRespuesta(['success' => true, 'message' => 'El usuario se eliminó exitosamente']);
-                    } else {
-                        enviarRespuesta(['success' => false, 'message' => 'No se pudo eliminar el usuario']);
+                        if ($sql->rowCount() > 0) {
+                            enviarRespuesta(['success' => true, 'message' => 'El usuario se eliminó exitosamente']);
+                        } else {
+                            enviarRespuesta(['success' => false, 'message' => 'No se pudo eliminar el usuario']);
+                        }
+                    } catch (PDOException $e) {
+                        if ($e->getCode() == 23000) {
+                            enviarRespuesta(['success' => false, 'message' => 'No se puede eliminar el usuario porque tiene una orden asociada. Si desea eliminar este usuario, elimine previamente las ordenes asociadas.']);
+                        } else {
+                            enviarRespuesta(['success' => false, 'message' => 'Error al eliminar el usuario: ' . $e->getMessage()]);
+                        }
                     }
                 }
             }
@@ -1139,7 +1277,7 @@ if (isset($_GET['action'])) {
                     if ($sql->rowCount() > 0) {
                         enviarRespuesta(['success' => true, 'message' => 'La orden se eliminó exitosamente']);
                     } else {
-                        enviarRespuesta(['success' => false, 'message' => 'No se eliminar la orden']);
+                        enviarRespuesta(['success' => false, 'message' => 'No se pudo eliminar la orden']);
                     }
                 }
             }
@@ -1210,37 +1348,66 @@ if (isset($_GET['action'])) {
                 $payload = json_decode(file_get_contents('php://input'), true);
                 $updatedImages = $payload['images'] ?? [];
 
-                if (!empty($updatedImages)) {
+               
                     try {
                         $con->beginTransaction();
 
-                        $imageIds = array_map(function ($img) {
-                            return $img['id'];
-                        }, $updatedImages);
-                        $placeholders = rtrim(str_repeat('?, ', count($imageIds)), ', ');
+                        if (!empty($updatedImages)) {
+                            $imageIds = array_map(function ($img) {
+                                return $img['id'];
+                            }, $updatedImages);
 
-                        $sqlDelete = "DELETE FROM gallery_images WHERE id NOT IN ($placeholders)";
-                        $stmtDelete = $con->prepare($sqlDelete);
-                        $stmtDelete->execute($imageIds);
+                            // Obtener registros actuales en la base de datos
+                            $sqlSelect = "SELECT id, img_url FROM gallery_images";
+                            $stmtSelect = $con->prepare($sqlSelect);
+                            $stmtSelect->execute();
+                            $existingImages = $stmtSelect->fetchAll(PDO::FETCH_ASSOC);
 
-                        foreach ($updatedImages as $index => $image) {
-                            $sqlUpdate = "UPDATE gallery_images SET priority = ? WHERE id = ?";
-                            $stmtUpdate = $con->prepare($sqlUpdate);
-                            $stmtUpdate->execute([($index + 1), $image['id']]);
+                            // Identificar las imágenes que deben ser eliminadas
+                            $imagesToDelete = array_filter($existingImages, function ($img) use ($imageIds) {
+                                return !in_array($img['id'], $imageIds);
+                            });
+
+                            // Eliminar los archivos correspondientes
+                            foreach ($imagesToDelete as $image) {
+                                $filePath = $image['img_url'];
+                                if (is_file($filePath)) {
+                                    unlink($filePath);
+                                }
+                            }
+
+                            $placeholders = rtrim(str_repeat('?, ', count($imageIds)), ', ');
+                            $sqlDelete = "DELETE FROM gallery_images WHERE id NOT IN ($placeholders)";
+                            $stmtDelete = $con->prepare($sqlDelete);
+                            $stmtDelete->execute($imageIds);
+
+                            foreach ($updatedImages as $index => $image) {
+                                $sqlUpdate = "UPDATE gallery_images SET priority = ? WHERE id = ?";
+                                $stmtUpdate = $con->prepare($sqlUpdate);
+                                $stmtUpdate->execute([($index + 1), $image['id']]);
+                            }
+                        } else {
+                            $sqlDeleteAll = "DELETE FROM gallery_images";
+                            $con->exec($sqlDeleteAll);
+
+                            $targetDir = './uploads/img-gallery/';
+                            $files = glob($targetDir . '*');
+                            foreach ($files as $file) {
+                                if (is_file($file)) {
+                                    unlink($file);
+                                }
+                            }
                         }
-
                         $con->commit();
-                        echo json_encode(['success' => true, 'message' => 'Galería actualizada correctamente']);
+                        enviarRespuesta(['success' => true, 'message' => 'Galería actualizada correctamente']);
                     } catch (PDOException $e) {
                         $con->rollBack();
                         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
                     }
                 } else {
-                    echo json_encode(['success' => false, 'message' => 'No images provided.']);
+                    enviarRespuesta(['success' => false, 'message' => 'No images provided.']);
                 }
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Invalid token.']);
-            }
+           
             break;
         case 'update_companyInfo': // -cuenta
             $authHeader = getallheaders();
@@ -1391,7 +1558,6 @@ if (isset($_GET['action'])) {
                             if (!$sql) {
                                 $anyUpdateFailed = true;
                             }
-
                         } catch (PDOException $e) {
                             $anyUpdateFailed = true;
                             error_log("Error en la actualización de envío: " . $e->getMessage());
