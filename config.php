@@ -16,8 +16,8 @@ define('DB_PASS', '');
 
 //Mail
 define('MAIL_HOST', 'smtp.gmail.com');
-define('MAIL_USERNAME', 'nataliagiselle.c@gmail.com');
-define('MAIL_PASSWORD', 'zayd qnsz faib ryfy'); //clave de aplicación
-define('MAIL_FROM', 'nataliagiselle.c@gmail.com');
-define('MAIL_FROM_NAME', 'LUZ INTERIOR');
+define('MAIL_USERNAME', 'luzinterior.noreply@gmail.com');
+define('MAIL_PASSWORD', 'jghm kwnx kwii evus'); //clave de aplicación
+define('MAIL_FROM', 'luzinterior.noreply@gmail.com');
+define('MAIL_FROM_NAME', 'Luz Interior');
 define('MAIL_PORT', 587);
