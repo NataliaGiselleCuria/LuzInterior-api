@@ -1243,8 +1243,7 @@ if (isset($_GET['action'])) {
                                 }
                             }
                         }
-                    }
-        
+                    }      
                     sendReply(['success' => true, 'updatedImages' => $updatedImages]);
                 } else {
                     sendReply(['success' => false, 'message' => 'Faltan datos necesarios.']);
@@ -1253,8 +1252,6 @@ if (isset($_GET['action'])) {
                 sendReply(['success' => false, 'message' => 'Token inválido.']);
             }
             break;
-
-        
         case 'change-approved': // -usuarios
             $authHeader = getallheaders();
             list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');

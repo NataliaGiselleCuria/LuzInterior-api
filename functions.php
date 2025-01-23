@@ -1,6 +1,7 @@
 <?php
 
 require_once 'config.php';
+require_once 'vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -99,9 +100,17 @@ function getDataCompany()
 
 function registerProduct($con, $data)
 {
+    $config = HTMLPurifier_Config::createDefault();
+    $config->set('HTML.Allowed', 'p,ul,ol,li,b,strong,i,em,br');
+    $config->set('Core.EscapeInvalidTags', true);
+    $purifier = new HTMLPurifier($config);
+
+    // Sanitizar HTML
+    $clean_html_description = $purifier->purify($data['description']);
+
     try {
         $sql = $con->prepare("INSERT INTO products (id, name, category, price, description, novelty) VALUES (?, ?, ?, ?, ?, ?)");
-        $sql->execute([$data['id'], $data['name'], $data['category'], $data['price'], $data['description'], $data['novelty']]);
+        $sql->execute([$data['id'], $data['name'], $data['category'], $data['price'], $clean_html_description, $data['novelty']]);
 
         if ($sql->rowCount() > 0) {
             return ['success' => true];
