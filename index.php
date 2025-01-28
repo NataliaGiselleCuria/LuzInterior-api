@@ -2,8 +2,8 @@
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
-error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE); // Oculta advertencias y avisos
-ini_set('display_errors', 0); // No muestra errores en la salida
+// error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE); // Oculta advertencias y avisos
+// ini_set('display_errors', 0); // No muestra errores en la salida
 
 require_once 'database.php';
 require_once 'config.php';
@@ -236,6 +236,13 @@ if (isset($_GET['action'])) {
             break;
         case 'list-price':
             $sql = $con->prepare("SELECT * FROM list_price");
+            $sql->execute();
+            $result = $sql->fetchAll(PDO::FETCH_ASSOC);
+            sendReply($result);
+            echo $result;
+            break;
+        case 'frequently-asked-questions':
+            $sql = $con->prepare("SELECT * FROM frequently_asked_questions");
             $sql->execute();
             $result = $sql->fetchAll(PDO::FETCH_ASSOC);
             sendReply($result);
@@ -1243,12 +1250,117 @@ if (isset($_GET['action'])) {
                                 }
                             }
                         }
-                    }      
+                    }
                     sendReply(['success' => true, 'updatedImages' => $updatedImages]);
                 } else {
                     sendReply(['success' => false, 'message' => 'Faltan datos necesarios.']);
                 }
             } else {
+                sendReply(['success' => false, 'message' => 'Token inválido.']);
+            }
+            break;
+        case 'add-frequently-asked-questions':
+            $authHeader = getallheaders();
+            list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
+            $decoded = verifyToken($jwt);
+        
+            if ($decoded) {
+                $data = json_decode(file_get_contents("php://input"), true);
+
+                if (isset($data['question'], $data['answer'])) {
+                    $question = $data['question'];
+                    $answer = $data['answer'];
+
+                    try {
+                        $sql = $con->prepare("INSERT INTO frequently_asked_questions (question, answer) VALUES (?,?)");
+                        $sql->execute([$question, $answer]);
+
+                        if ($sql->rowCount() > 0) {
+                            sendReply(['success' => true, 'message' => 'Información actualizada']);
+                        } else {
+                            sendReply(['success' => false, 'message' => 'No se pudo actualizar la información']);
+                        }
+                    } catch (PDOException $e) {
+                        error_log('Database error: ' . $e->getMessage());
+                        sendReply(['success' => false, 'message' => 'Error en la base de datos: ' . $e->getMessage()]);
+                    }
+                    
+                } else {
+                    sendReply(['status' => 'error', 'message' => 'Datos incompletos']);
+                }
+            }else {
+                sendReply(['success' => false, 'message' => 'Token inválido.']);
+            }
+            break;
+        case 'update-frequently-asked-questions':
+            $authHeader = getallheaders();
+            list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
+            $decoded = verifyToken($jwt);
+        
+            if ($decoded) {
+                $data = json_decode(file_get_contents("php://input"), true);
+
+                if (isset($data['id'],$data['question'], $data['answer'])) {
+                    $id = $data['id'];
+                    $question = $data['question'];
+                    $answer = $data['answer'];
+
+                    try {
+                        $sql = $con->prepare("UPDATE frequently_asked_questions SET question = :question, answer = :answer WHERE id = :id");
+                        $sql->execute([
+                            ':id' => $id,
+                            ':question' => $question,
+                            ':answer' => $answer,
+                        ]);
+
+                        if ($sql->rowCount() > 0) {
+                            sendReply(['success' => true, 'message' => 'Información actualizada']);
+                        } else {
+                            sendReply(['success' => false, 'message' => 'No se pudo actualizar la información']);
+                        }
+                    } catch (PDOException $e) {
+                        error_log('Database error: ' . $e->getMessage());
+                        sendReply(['success' => false, 'message' => 'Error en la base de datos: ' . $e->getMessage()]);
+                    }
+                    
+                } else {
+                    sendReply(['status' => 'error', 'message' => 'Datos incompletos']);
+                }
+            }else {
+                sendReply(['success' => false, 'message' => 'Token inválido.']);
+            }
+            break;
+        case 'delete-frequently-asked-questions':
+            $authHeader = getallheaders();
+            list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
+            $decoded = verifyToken($jwt);
+        
+            if ($decoded) {
+                $data = json_decode(file_get_contents("php://input"), true);
+
+                if (isset($data['id'],$data['question'], $data['answer'])) {
+                    $id = $data['id'];
+
+                    try {
+                        $sql = $con->prepare("DELETE FROM frequently_asked_questions WHERE id = :id");
+                        $sql->execute([
+                            ':id' => $id,
+                        ]);
+
+                        if ($sql->rowCount() > 0) {
+                            sendReply(['success' => true, 'message' => 'Información actualizada']);
+                        } else {
+                            sendReply(['success' => false, 'message' => 'No se pudo actualizar la información']);
+                        }
+                    } catch (PDOException $e) {
+                        error_log('Database error: ' . $e->getMessage());
+                        sendReply(['success' => false, 'message' => 'Error en la base de datos: ' . $e->getMessage()]);
+                    }
+                    
+                } else {
+                    sendReply(['status' => 'error', 'message' => 'Datos incompletos']);
+                }
+            }else {
                 sendReply(['success' => false, 'message' => 'Token inválido.']);
             }
             break;
