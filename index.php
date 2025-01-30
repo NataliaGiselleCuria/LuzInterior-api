@@ -234,6 +234,20 @@ if (isset($_GET['action'])) {
             sendReply($result);
             echo $result;
             break;
+        case 'banner-desktop':
+            $sql = $con->prepare("SELECT * FROM banner_images_desktop");
+            $sql->execute();
+            $result = $sql->fetchAll(PDO::FETCH_ASSOC);
+            sendReply($result);
+            echo $result;
+            break;
+        case 'banner-mobile':
+            $sql = $con->prepare("SELECT * FROM banner_images_mobile");
+            $sql->execute();
+            $result = $sql->fetchAll(PDO::FETCH_ASSOC);
+            sendReply($result);
+            echo $result;
+            break;
         case 'list-price':
             $sql = $con->prepare("SELECT * FROM list_price");
             $sql->execute();
@@ -1079,7 +1093,7 @@ if (isset($_GET['action'])) {
                 sendReply(['success' => false, 'message' => 'Token inválido o expirado']);
             }
             break;
-        case 'update-price':
+        case 'update-price': // - precios de productos en lista
             $authHeader = getallheaders();
             list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
             $decoded = verifyToken($jwt);
@@ -1123,13 +1137,12 @@ if (isset($_GET['action'])) {
                 sendReply(['success' => false, 'message' => 'Token inválido o expirado']);
             }
             break;
-        case 'update-list-price':
+        case 'update-list-price': // - lista de precios
             $authHeader = getallheaders();
             list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
             $decoded = verifyToken($jwt);
 
             if ($decoded) {
-                // Leer datos del archivo y otros datos del formulario
                 if (!empty($_FILES['list_price']['tmp_name'])) {
                     $fileTmpName = $_FILES['list_price']['tmp_name'];
                     $fileName = basename($_FILES['list_price']['name']);
@@ -1150,11 +1163,9 @@ if (isset($_GET['action'])) {
                         exit;
                     }
 
-                    // Generar un nombre único para evitar conflictos
                     $uniqueFileName = uniqid() . '-' . $fileName;
                     $uploadPath = $uploadDirectory . $uniqueFileName;
 
-                    // Mover el archivo a la carpeta de uploads
                     if (move_uploaded_file($fileTmpName, $uploadPath)) {
                         try {
                             $sql1 = $con->prepare("TRUNCATE TABLE `luzinterior`.`list_price`");
@@ -1179,6 +1190,39 @@ if (isset($_GET['action'])) {
                     }
                 } else {
                     sendReply(['success' => false, 'message' => 'No se recibió un archivo para subir']);
+                }
+            } else {
+                sendReply(['success' => false, 'message' => 'Token inválido o expirado']);
+            }
+            break;
+        case 'delete-list-price':
+            $authHeader = getallheaders();
+            list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
+            $decoded = verifyToken($jwt);
+        
+            if ($decoded) {
+                try {
+                    $sql = $con->prepare("SELECT list_price FROM list_price LIMIT 1");
+                    $sql->execute();
+                    $result = $sql->fetch(PDO::FETCH_ASSOC);
+        
+                    if ($result) {
+                        $filePath = $result['list_price'];
+        
+                        // Eliminar el archivo físico si existe
+                        if (file_exists($filePath)) {
+                            unlink($filePath);
+                        }
+        
+                        $sqlDelete = $con->prepare("TRUNCATE TABLE `luzinterior`.`list_price`");
+                        $sqlDelete->execute();
+        
+                        sendReply(['success' => true, 'message' => 'Lista de precios eliminada correctamente']);
+                    } else {
+                        sendReply(['success' => false, 'message' => 'No se encontró ninguna lista de precios para eliminar']);
+                    }
+                } catch (PDOException $e) {
+                    sendReply(['success' => false, 'message' => 'Error al eliminar la lista de precios']);
                 }
             } else {
                 sendReply(['success' => false, 'message' => 'Token inválido o expirado']);
@@ -1733,6 +1777,260 @@ if (isset($_GET['action'])) {
                     }
                     $con->commit();
                     sendReply(['success' => true, 'message' => 'Galería actualizada correctamente']);
+                } catch (PDOException $e) {
+                    $con->rollBack();
+                    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+                }
+            } else {
+                sendReply(['success' => false, 'message' => 'No images provided.']);
+            }
+
+            break;
+        case 'add-banner-desktop': // -banner
+            $authHeader = getallheaders();
+            list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
+            $decoded = verifyToken($jwt);
+
+            if ($decoded) {
+                // Verificar si el archivo fue enviado correctamente
+                if (!empty($_FILES['image']['tmp_name']) && isset($_POST['priority'])) {
+                    $image = $_FILES['image'];
+                    $priority = intval($_POST['priority']);
+
+                    // Validar tipo de archivo
+                    $allowedTypes = ['image/jpeg', 'image/png'];
+                    if (!in_array($image['type'], $allowedTypes)) {
+                        echo json_encode([
+                            'success' => false,
+                            'message' => 'Tipo de archivo no permitido.',
+                        ]);
+                        break;
+                    }
+
+                    // Crear directorio si no existe
+                    $targetDir = './uploads/img-banner/desktop/';
+
+                    // Generar un nombre único para el archivo
+                    $fileName = uniqid() . "_" . basename($image['name']);
+                    $targetFile = $targetDir . $fileName;
+
+                    if (move_uploaded_file($image['tmp_name'], $targetFile)) {
+                        // Insertar datos en la base de datos
+                        $sql = $con->prepare("INSERT INTO banner_images_desktop (img_url, priority) VALUES (?, ?)");
+                        if ($sql->execute([$targetFile, $priority])) {
+                            echo json_encode([
+                                'success' => true,
+                                'message' => 'Imagen añadida exitosamente.',
+                            ]);
+                        } else {
+                            echo json_encode([
+                                'success' => false,
+                                'message' => 'Error al guardar la imagen en la base de datos.',
+                            ]);
+                        }
+                    } else {
+                        echo json_encode([
+                            'success' => false,
+                            'message' => 'Error al mover el archivo subido.',
+                        ]);
+                    }
+                } else {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Archivo o prioridad no enviados.',
+                    ]);
+                }
+            }
+
+            break;
+        case 'update-banner-desktop':
+            $authHeader = getallheaders();
+            list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
+            $decoded = verifyToken($jwt);
+
+            if ($decoded) {
+                $payload = json_decode(file_get_contents('php://input'), true);
+                $updatedImages = $payload['images'] ?? [];
+
+
+                try {
+                    $con->beginTransaction();
+
+                    if (!empty($updatedImages)) {
+                        $imageIds = array_map(function ($img) {
+                            return $img['id'];
+                        }, $updatedImages);
+
+                        // Obtener registros actuales en la base de datos
+                        $sqlSelect = "SELECT id, img_url FROM banner_images_desktop";
+                        $stmtSelect = $con->prepare($sqlSelect);
+                        $stmtSelect->execute();
+                        $existingImages = $stmtSelect->fetchAll(PDO::FETCH_ASSOC);
+
+                        // Identificar las imágenes que deben ser eliminadas
+                        $imagesToDelete = array_filter($existingImages, function ($img) use ($imageIds) {
+                            return !in_array($img['id'], $imageIds);
+                        });
+
+                        // Eliminar los archivos correspondientes
+                        foreach ($imagesToDelete as $image) {
+                            $filePath = $image['img_url'];
+                            if (is_file($filePath)) {
+                                unlink($filePath);
+                            }
+                        }
+
+                        $placeholders = rtrim(str_repeat('?, ', count($imageIds)), ', ');
+                        $sqlDelete = "DELETE FROM banner_images_desktop WHERE id NOT IN ($placeholders)";
+                        $stmtDelete = $con->prepare($sqlDelete);
+                        $stmtDelete->execute($imageIds);
+
+                        foreach ($updatedImages as $index => $image) {
+                            $sqlUpdate = "UPDATE banner_images_desktop SET priority = ? WHERE id = ?";
+                            $stmtUpdate = $con->prepare($sqlUpdate);
+                            $stmtUpdate->execute([($index + 1), $image['id']]);
+                        }
+                    } else {
+                        $sqlDeleteAll = "DELETE FROM banner_images_desktop";
+                        $con->exec($sqlDeleteAll);
+
+                        $targetDir = './uploads/img-banner/desktop/';
+                        $files = glob($targetDir . '*');
+                        foreach ($files as $file) {
+                            if (is_file($file)) {
+                                unlink($file);
+                            }
+                        }
+                    }
+                    $con->commit();
+                    sendReply(['success' => true, 'message' => 'Banner actualizado correctamente']);
+                } catch (PDOException $e) {
+                    $con->rollBack();
+                    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+                }
+            } else {
+                sendReply(['success' => false, 'message' => 'No images provided.']);
+            }
+
+            break;
+        case 'add-banner-mobile':
+            $authHeader = getallheaders();
+            list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
+            $decoded = verifyToken($jwt);
+
+            if ($decoded) {
+                // Verificar si el archivo fue enviado correctamente
+                if (!empty($_FILES['image']['tmp_name']) && isset($_POST['priority'])) {
+                    $image = $_FILES['image'];
+                    $priority = intval($_POST['priority']);
+
+                    // Validar tipo de archivo
+                    $allowedTypes = ['image/jpeg', 'image/png'];
+                    if (!in_array($image['type'], $allowedTypes)) {
+                        echo json_encode([
+                            'success' => false,
+                            'message' => 'Tipo de archivo no permitido.',
+                        ]);
+                        break;
+                    }
+
+                    // Crear directorio si no existe
+                    $targetDir = './uploads/img-banner/mobile/';
+
+                    // Generar un nombre único para el archivo
+                    $fileName = uniqid() . "_" . basename($image['name']);
+                    $targetFile = $targetDir . $fileName;
+
+                    if (move_uploaded_file($image['tmp_name'], $targetFile)) {
+                        // Insertar datos en la base de datos
+                        $sql = $con->prepare("INSERT INTO banner_images_mobile (img_url, priority) VALUES (?, ?)");
+                        if ($sql->execute([$targetFile, $priority])) {
+                            echo json_encode([
+                                'success' => true,
+                                'message' => 'Imagen añadida exitosamente.',
+                            ]);
+                        } else {
+                            echo json_encode([
+                                'success' => false,
+                                'message' => 'Error al guardar la imagen en la base de datos.',
+                            ]);
+                        }
+                    } else {
+                        echo json_encode([
+                            'success' => false,
+                            'message' => 'Error al mover el archivo subido.',
+                        ]);
+                    }
+                } else {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Archivo o prioridad no enviados.',
+                    ]);
+                }
+            }
+
+            break;
+        case 'update-banner-mobile':
+            $authHeader = getallheaders();
+            list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
+            $decoded = verifyToken($jwt);
+
+            if ($decoded) {
+                $payload = json_decode(file_get_contents('php://input'), true);
+                $updatedImages = $payload['images'] ?? [];
+
+
+                try {
+                    $con->beginTransaction();
+
+                    if (!empty($updatedImages)) {
+                        $imageIds = array_map(function ($img) {
+                            return $img['id'];
+                        }, $updatedImages);
+
+                        // Obtener registros actuales en la base de datos
+                        $sqlSelect = "SELECT id, img_url FROM banner_images_mobile";
+                        $stmtSelect = $con->prepare($sqlSelect);
+                        $stmtSelect->execute();
+                        $existingImages = $stmtSelect->fetchAll(PDO::FETCH_ASSOC);
+
+                        // Identificar las imágenes que deben ser eliminadas
+                        $imagesToDelete = array_filter($existingImages, function ($img) use ($imageIds) {
+                            return !in_array($img['id'], $imageIds);
+                        });
+
+                        // Eliminar los archivos correspondientes
+                        foreach ($imagesToDelete as $image) {
+                            $filePath = $image['img_url'];
+                            if (is_file($filePath)) {
+                                unlink($filePath);
+                            }
+                        }
+
+                        $placeholders = rtrim(str_repeat('?, ', count($imageIds)), ', ');
+                        $sqlDelete = "DELETE FROM banner_images_mobile WHERE id NOT IN ($placeholders)";
+                        $stmtDelete = $con->prepare($sqlDelete);
+                        $stmtDelete->execute($imageIds);
+
+                        foreach ($updatedImages as $index => $image) {
+                            $sqlUpdate = "UPDATE banner_images_mobile SET priority = ? WHERE id = ?";
+                            $stmtUpdate = $con->prepare($sqlUpdate);
+                            $stmtUpdate->execute([($index + 1), $image['id']]);
+                        }
+                    } else {
+                        $sqlDeleteAll = "DELETE FROM banner_images_mobile";
+                        $con->exec($sqlDeleteAll);
+
+                        $targetDir = './uploads/img-banner/mobile/';
+                        $files = glob($targetDir . '*');
+                        foreach ($files as $file) {
+                            if (is_file($file)) {
+                                unlink($file);
+                            }
+                        }
+                    }
+                    $con->commit();
+                    sendReply(['success' => true, 'message' => 'Banner actualizado correctamente']);
                 } catch (PDOException $e) {
                     $con->rollBack();
                     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
