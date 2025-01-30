@@ -298,3 +298,5 @@ function sendMail($destinatario, $asunto, $mensajeHtml, $altBody)
         return false;
     }
 }
+
+

@@ -1786,18 +1786,18 @@ if (isset($_GET['action'])) {
             }
 
             break;
-        case 'add-banner-desktop': // -banner
+        case 'add-banner':
             $authHeader = getallheaders();
             list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
             $decoded = verifyToken($jwt);
-
+        
             if ($decoded) {
-                // Verificar si el archivo fue enviado correctamente
-                if (!empty($_FILES['image']['tmp_name']) && isset($_POST['priority'])) {
+                if (!empty($_FILES['image']['tmp_name']) && isset($_POST['priority']) && isset($_POST['type'])) {
                     $image = $_FILES['image'];
                     $priority = intval($_POST['priority']);
-
-                    // Validar tipo de archivo
+                    $type = $_POST['type']; // 'desktop' o 'mobile'
+                    $link = isset($_POST['link']) ? trim($_POST['link']) : null;
+        
                     $allowedTypes = ['image/jpeg', 'image/png'];
                     if (!in_array($image['type'], $allowedTypes)) {
                         echo json_encode([
@@ -1806,18 +1806,32 @@ if (isset($_GET['action'])) {
                         ]);
                         break;
                     }
-
-                    // Crear directorio si no existe
-                    $targetDir = './uploads/img-banner/desktop/';
-
-                    // Generar un nombre único para el archivo
+        
+                    if ($type === 'desktop') {
+                        $targetDir = './uploads/img-banner/desktop/';
+                        $tableName = 'banner_images_desktop';
+                    } elseif ($type === 'mobile') {
+                        $targetDir = './uploads/img-banner/mobile/';
+                        $tableName = 'banner_images_mobile';
+                    } else {
+                        echo json_encode([
+                            'success' => false,
+                            'message' => 'Tipo de banner inválido.',
+                        ]);
+                        break;
+                    }
+        
+                    if (!is_dir($targetDir)) {
+                        mkdir($targetDir, 0777, true);
+                    }
+        
                     $fileName = uniqid() . "_" . basename($image['name']);
                     $targetFile = $targetDir . $fileName;
-
+        
                     if (move_uploaded_file($image['tmp_name'], $targetFile)) {
                         // Insertar datos en la base de datos
-                        $sql = $con->prepare("INSERT INTO banner_images_desktop (img_url, priority) VALUES (?, ?)");
-                        if ($sql->execute([$targetFile, $priority])) {
+                        $sql = $con->prepare("INSERT INTO $tableName (img_url, priority, link) VALUES (?, ?, ?)");
+                        if ($sql->execute([$targetFile, $priority, $link])) {
                             echo json_encode([
                                 'success' => true,
                                 'message' => 'Imagen añadida exitosamente.',
@@ -1837,11 +1851,10 @@ if (isset($_GET['action'])) {
                 } else {
                     echo json_encode([
                         'success' => false,
-                        'message' => 'Archivo o prioridad no enviados.',
+                        'message' => 'Archivo, prioridad o tipo de banner no enviados.',
                     ]);
                 }
             }
-
             break;
         case 'update-banner-desktop':
             $authHeader = getallheaders();
@@ -1850,8 +1863,7 @@ if (isset($_GET['action'])) {
 
             if ($decoded) {
                 $payload = json_decode(file_get_contents('php://input'), true);
-                $updatedImages = $payload['images'] ?? [];
-
+                $updatedImages = $payload['payload']['images'] ?? [];
 
                 try {
                     $con->beginTransaction();
@@ -1886,9 +1898,9 @@ if (isset($_GET['action'])) {
                         $stmtDelete->execute($imageIds);
 
                         foreach ($updatedImages as $index => $image) {
-                            $sqlUpdate = "UPDATE banner_images_desktop SET priority = ? WHERE id = ?";
+                            $sqlUpdate = "UPDATE banner_images_desktop SET priority = ? , link = ? WHERE id = ?";
                             $stmtUpdate = $con->prepare($sqlUpdate);
-                            $stmtUpdate->execute([($index + 1), $image['id']]);
+                            $stmtUpdate->execute([($index + 1), $image['link'], $image['id']]);
                         }
                     } else {
                         $sqlDeleteAll = "DELETE FROM banner_images_desktop";
@@ -1912,64 +1924,9 @@ if (isset($_GET['action'])) {
                 sendReply(['success' => false, 'message' => 'No images provided.']);
             }
 
-            break;
-        case 'add-banner-mobile':
-            $authHeader = getallheaders();
-            list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
-            $decoded = verifyToken($jwt);
 
-            if ($decoded) {
-                // Verificar si el archivo fue enviado correctamente
-                if (!empty($_FILES['image']['tmp_name']) && isset($_POST['priority'])) {
-                    $image = $_FILES['image'];
-                    $priority = intval($_POST['priority']);
 
-                    // Validar tipo de archivo
-                    $allowedTypes = ['image/jpeg', 'image/png'];
-                    if (!in_array($image['type'], $allowedTypes)) {
-                        echo json_encode([
-                            'success' => false,
-                            'message' => 'Tipo de archivo no permitido.',
-                        ]);
-                        break;
-                    }
-
-                    // Crear directorio si no existe
-                    $targetDir = './uploads/img-banner/mobile/';
-
-                    // Generar un nombre único para el archivo
-                    $fileName = uniqid() . "_" . basename($image['name']);
-                    $targetFile = $targetDir . $fileName;
-
-                    if (move_uploaded_file($image['tmp_name'], $targetFile)) {
-                        // Insertar datos en la base de datos
-                        $sql = $con->prepare("INSERT INTO banner_images_mobile (img_url, priority) VALUES (?, ?)");
-                        if ($sql->execute([$targetFile, $priority])) {
-                            echo json_encode([
-                                'success' => true,
-                                'message' => 'Imagen añadida exitosamente.',
-                            ]);
-                        } else {
-                            echo json_encode([
-                                'success' => false,
-                                'message' => 'Error al guardar la imagen en la base de datos.',
-                            ]);
-                        }
-                    } else {
-                        echo json_encode([
-                            'success' => false,
-                            'message' => 'Error al mover el archivo subido.',
-                        ]);
-                    }
-                } else {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Archivo o prioridad no enviados.',
-                    ]);
-                }
-            }
-
-            break;
+        
         case 'update-banner-mobile':
             $authHeader = getallheaders();
             list($jwt) = @sscanf($authHeader['Authorization'] ?? '', 'Bearer %s');
@@ -1977,7 +1934,7 @@ if (isset($_GET['action'])) {
 
             if ($decoded) {
                 $payload = json_decode(file_get_contents('php://input'), true);
-                $updatedImages = $payload['images'] ?? [];
+                $updatedImages = $payload['payload']['images'] ?? [];
 
 
                 try {

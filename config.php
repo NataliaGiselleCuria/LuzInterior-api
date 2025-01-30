@@ -21,3 +21,5 @@ define('MAIL_PASSWORD', 'jghm kwnx kwii evus'); //clave de aplicación
 define('MAIL_FROM', 'luzinterior.noreply@gmail.com');
 define('MAIL_FROM_NAME', 'Luz Interior');
 define('MAIL_PORT', 587);
+
+            
