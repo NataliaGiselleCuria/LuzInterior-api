@@ -12,7 +12,7 @@ define('DB_PASS', '');
 // define('DB_HOST', 'sql309.infinityfree.com');
 // define('DB_NAME', 'if0_37898151_luzinterior');
 // define('DB_USER', 'if0_37898151');
-// define('DB_PASS', 'TVYRy0ckSwoNzz ');
+// define('DB_PASS', 'TVYRy0ckSwoNzz');
 
 //Mail
 define('MAIL_HOST', 'smtp.gmail.com');
