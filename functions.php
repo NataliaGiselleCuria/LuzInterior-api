@@ -147,8 +147,7 @@ function generateEmailTemplate( $title, $content)
         <style>
            
             p{
-                font-size: 16px;
-               
+                font-size: 16px;            
             }
 
             body {
@@ -156,6 +155,7 @@ function generateEmailTemplate( $title, $content)
                 padding: 20px;
                 margin: 0;
             }
+            
             .email-container {
                 max-width: 600px;
                 margin: 0 auto;

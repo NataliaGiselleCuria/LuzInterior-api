@@ -152,7 +152,7 @@ if (isset($_GET['action'])) {
 
                 if ($row['id_address']) {
                     $usuarios[$row['id']]['addresses'][] = [
-                        'id' => $row['id_address'],
+                        'id_address' => $row['id_address'],
                         'name' => $row['name'],
                         'last_name' => $row['last_name'],
                         'company_name' => $row['company_name'],
@@ -487,7 +487,7 @@ if (isset($_GET['action'])) {
 
                 // Enviar correo con el enlace
                 $title = 'Correo recuperación de contraseña.';
-                $url = "http://localhost:5173/restablecer-contraseña?token=$token";
+                $url = "http://localhost:5173/restablecer_contrasenia?token=$token";
 
                 $contentClient = "
                     <h1>Recuperación de contraseña.</h1>
@@ -737,9 +737,8 @@ if (isset($_GET['action'])) {
                 $decoded = verifyToken($jwt);
 
                 if ($decoded) {
-                    $data = json_decode(file_get_contents('php://input'), true);
+                    if (isset($data['id'])) {
 
-                    if (isset($data['data'])) {
                         $id_address = $data['data'];
 
                         try {
@@ -1297,7 +1296,7 @@ if (isset($_GET['action'])) {
 
         case 'upload-images-products':
             $data = json_decode(file_get_contents("php://input"), true);
-            $jwt = $data['token'] ?? null;
+            $jwt = $_POST['token'] ?? null;
 
             if ($jwt) {
                 $decoded = verifyToken($jwt);
@@ -1502,6 +1501,13 @@ if (isset($_GET['action'])) {
 
                     if (isset($data['id'])) {
                         $id = $data['id'];
+
+                        $user_sql = "SELECT * FROM users WHERE id = :id";
+                        $user_id_params = [':id' => $id];
+                        $result_user = getData($con, $user_sql, $user_id_params);
+
+                        $name = $result_user['name'];
+                        $email = $result_user['email'];
 
                         $sql = $con->prepare("UPDATE users SET approved = NOT approved, new = 0 WHERE id = :id");
                         $sql->execute([':id' => $id]);
@@ -2177,7 +2183,7 @@ if (isset($_GET['action'])) {
                             foreach ($data['data'] as $key => $value) {
                                 if (is_array($value)) {
                                     $value = json_encode($value);
-                                }     
+                                }
                                 $stmt->execute([$value, $key]);
                             }
 
