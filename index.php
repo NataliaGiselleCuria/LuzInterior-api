@@ -2,8 +2,8 @@
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
-// error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE); // Oculta advertencias y avisos
-// ini_set('display_errors', 0); // No muestra errores en la salida
+error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE); // Oculta advertencias y avisos
+ini_set('display_errors', 0); // No muestra errores en la salida
 
 require_once 'database.php';
 require_once 'config.php';
@@ -1824,21 +1824,17 @@ if (isset($_GET['action'])) {
                             break;
                         }
 
-                        // Crear directorio si no existe
-                        $targetDir = './uploads/img-gallery/';
+                        $filePath = '/uploads/img-gallery/' . basename($image['name']);
 
-                        // Generar un nombre único para el archivo
-                        $fileName = uniqid() . "_" . basename($image['name']);
-                        $targetFile = $targetDir . $fileName;
-
-                        if (move_uploaded_file($image['tmp_name'], $targetFile)) {
+                        if (move_uploaded_file($image['tmp_name'], __DIR__ . $filePath)) {
                             // Insertar datos en la base de datos
                             $sql = $con->prepare("INSERT INTO gallery_images (img_url, priority) VALUES (?, ?)");
-                            if ($sql->execute([$targetFile, $priority])) {
+                            if ($sql->execute([$filePath, $priority])) {
                                 echo json_encode([
                                     'success' => true,
                                     'message' => 'Imagen añadida exitosamente.',
                                 ]);
+
                             } else {
                                 echo json_encode([
                                     'success' => false,
@@ -1962,10 +1958,10 @@ if (isset($_GET['action'])) {
                         }
 
                         if ($type === 'desktop') {
-                            $targetDir = './uploads/img-banner/desktop/';
+                            $filePath = '/uploads/img-banner/desktop/' . basename($image['name']);
                             $tableName = 'banner_images_desktop';
                         } elseif ($type === 'mobile') {
-                            $targetDir = './uploads/img-banner/mobile/';
+                            $filePath = '/uploads/img-banner/mobile/' . basename($image['name']);
                             $tableName = 'banner_images_mobile';
                         } else {
                             echo json_encode([
@@ -1975,17 +1971,10 @@ if (isset($_GET['action'])) {
                             break;
                         }
 
-                        if (!is_dir($targetDir)) {
-                            mkdir($targetDir, 0777, true);
-                        }
-
-                        $fileName = uniqid() . "_" . basename($image['name']);
-                        $targetFile = $targetDir . $fileName;
-
-                        if (move_uploaded_file($image['tmp_name'], $targetFile)) {
+                        if (move_uploaded_file($image['tmp_name'], __DIR__ . $filePath)) {
                             // Insertar datos en la base de datos
                             $sql = $con->prepare("INSERT INTO $tableName (img_url, priority, link) VALUES (?, ?, ?)");
-                            if ($sql->execute([$targetFile, $priority, $link])) {
+                            if ($sql->execute([$filePath, $priority, $link])) {
                                 echo json_encode([
                                     'success' => true,
                                     'message' => 'Imagen añadida exitosamente.',
@@ -2045,7 +2034,7 @@ if (isset($_GET['action'])) {
 
                             // Eliminar los archivos correspondientes
                             foreach ($imagesToDelete as $image) {
-                                $filePath = $image['img_url'];
+                                $filePath = __DIR__ . $image['img_url'];
                                 if (is_file($filePath)) {
                                     unlink($filePath);
                                 }
@@ -2065,7 +2054,7 @@ if (isset($_GET['action'])) {
                             $sqlDeleteAll = "DELETE FROM banner_images_desktop";
                             $con->exec($sqlDeleteAll);
 
-                            $targetDir = '/uploads/img-banner/desktop/';
+                            $targetDir = './uploads/img-banner/desktop/';
                             $files = glob($targetDir . '*');
                             foreach ($files as $file) {
                                 if (is_file($file)) {
@@ -2121,7 +2110,7 @@ if (isset($_GET['action'])) {
 
                             // Eliminar los archivos correspondientes
                             foreach ($imagesToDelete as $image) {
-                                $filePath = $image['img_url'];
+                                $filePath = __DIR__ . $image['img_url'];
                                 if (is_file($filePath)) {
                                     unlink($filePath);
                                 }
@@ -2141,7 +2130,7 @@ if (isset($_GET['action'])) {
                             $sqlDeleteAll = "DELETE FROM banner_images_mobile";
                             $con->exec($sqlDeleteAll);
 
-                            $targetDir = '/uploads/img-banner/mobile/';
+                            $targetDir = './uploads/img-banner/mobile/';
                             $files = glob($targetDir . '*');
                             foreach ($files as $file) {
                                 if (is_file($file)) {
