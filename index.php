@@ -169,7 +169,7 @@ if (isset($_GET['action'])) {
 
             $usuariosArray = array_values($usuarios);
 
-            sendReply($usuariosArray);
+            sendCodReply($usuariosArray);
             break;
         case 'orders':
             $sql = $con->prepare("
@@ -337,7 +337,7 @@ if (isset($_GET['action'])) {
                                 }
                             }
                         }
-                        sendReply(['success' => true, 'user' => $usuario]);
+                        sendCodReply(['success' => true, 'user' => $usuario]);
                     } else {
                         sendReply(['success' => false, 'message' => 'ID de usuario no encontrado en el token']);
                     }
@@ -394,7 +394,7 @@ if (isset($_GET['action'])) {
                         $contentCompany = "
                             <h1>Nuevo usuario registrado.</h1>
                             <p>El usuario <strong>$name</strong> se ha registrado y espera aprobación de cuenta.</p>
-                            <p><u><a href='" . $companyInfo['data']['web'] . "mayoristas'>Inicia sesión para tomar acción sobre la cuenta del usuario desde el panel de administrador.</a></u></p>
+                            <p><u><a href='" . $companyInfo['data']['web'] . "login'>Inicia sesión para tomar acción sobre la cuenta del usuario desde el panel de administrador.</a></u></p>
                             <p>$name te está esperando.</p>
                             <p>Saludos,<br>El equipo de Luz Interior.</p>
                         ";
@@ -884,7 +884,7 @@ if (isset($_GET['action'])) {
                             <h1>Nueva orden de pedido.</h1>
                             <h2>Orden n° $order_id</h2>
                             <p><strong>$name</strong> acaba de realizar una nueva orden de pedido.</p>
-                            <p><u><a href='" . $companyInfo['data']['web'] . "mayoristas'>Inicia sesión para ver la orden completa desde el panel de administrador.</a></u></p>
+                            <p><u><a href='" . $companyInfo['data']['web'] . "login'>Inicia sesión para ver la orden completa desde el panel de administrador.</a></u></p>
                             <h4>Detalles del pedido</h4>
                             <ul>
                                 <li><strong>Total:</strong>$ $total_price</li>
@@ -1205,7 +1205,7 @@ if (isset($_GET['action'])) {
                         $fileName = basename($_FILES['list_price']['name']);
                         $fileName = str_replace(' ', '_', $fileName);
 
-                        $uploadDirectory = 'uploads/list_price/';
+                        $uploadDirectory = '/uploads/list_price/';
                         $uploadDate = date("Y-m-d H:i:s");
 
                         $files = glob($uploadDirectory . '*');
@@ -1521,7 +1521,7 @@ if (isset($_GET['action'])) {
                             <p>Hola $name,</p>
                             <h1>Bienvenido a Luz Interior.</h1>
                             <p>Tu cuenta ha sido verificada.</p>
-                            <p>Ya puedes <u><a href='" . $companyInfo['data']['web'] . "mayoristas'><strong>iniciar sesión</strong></a></u> para acceder a la lista de precios mayoristas y realizar ordenes de compra.</p>
+                            <p>Ya puedes <u><a href='" . $companyInfo['data']['web'] . "login'><strong>iniciar sesión</strong></a></u> para acceder a la lista de precios mayoristas y realizar ordenes de compra.</p>
                             <p>Gracias por tu paciencia y por elegirnos.</p>
                             <p>Saludos,<br>El equipo de Luz Interior.</p>
                         ";
@@ -2002,6 +2002,7 @@ if (isset($_GET['action'])) {
                 sendReply(['success' => false, 'message' => 'Token no encontrado']);
             }
             break;
+            
         case 'update-banner-desktop':
             $data = json_decode(file_get_contents("php://input"), true);
             $jwt = $data['token'] ?? null;

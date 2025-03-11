@@ -40,6 +40,25 @@ function sendReply($data)
     exit;
 }
 
+function sendCodReply($data){
+     // Configuración del JWT
+     $issuedAt = time();
+     $expirationTime = $issuedAt + 3600;
+     $payload = array(
+         "iat" => $issuedAt,
+         "exp" => $expirationTime,
+         "data" => $data
+     );
+ 
+     // Generar el token JWT
+     $jwt = JWT::encode($payload, JWT_SECRET, JWT_ALGORITHM);
+ 
+     // Enviar el token al frontend
+     header('Content-Type: application/json');
+     echo json_encode(['token' => $jwt]);
+     exit;
+}
+
 function verifyToken($token)
 {
     try {
